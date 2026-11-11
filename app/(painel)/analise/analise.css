@@ -1,0 +1,516 @@
+/* Estilos da aba Análise. Os tokens de cor (--g-*, --seq-*) ficam em app/globals.css. */
+
+body:has(main.analise) {
+  max-width: 1120px;
+}
+
+.analise .subtitulo,
+.analise .nota,
+.painel figcaption p,
+.analise .aviso {
+  color: var(--suave);
+  margin-top: 0;
+}
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.atalhos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.atalhos a {
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+  text-decoration: none;
+  background: var(--superficie);
+}
+
+.atalhos a:hover {
+  background: var(--fundo);
+}
+
+.atalhos a.ativo {
+  font-weight: 700;
+  border-color: var(--destaque);
+}
+
+.periodo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.periodo input {
+  padding: 0.3rem 0.5rem;
+}
+
+.periodo button {
+  padding: 0.35rem 0.8rem;
+}
+
+.exportar {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.exportar a {
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  background: var(--destaque);
+  color: var(--fundo);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.75rem;
+}
+
+.kpi {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.85rem 1rem;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+}
+
+.kpi span,
+.kpi small {
+  color: var(--suave);
+  font-size: 0.875rem;
+}
+
+.kpi strong {
+  /* Sem quebra (senão o "-" de um valor negativo fica sozinho numa linha); encolhe no celular. */
+  font-size: clamp(1.05rem, 4.4vw, 1.35rem);
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.delta {
+  font-size: 0.875rem;
+  color: var(--suave);
+}
+
+.delta.bom {
+  color: var(--entrada);
+}
+
+.delta.ruim {
+  color: var(--saida);
+}
+
+.conclusoes ul {
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.paineis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 480px), 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.painel {
+  margin: 0;
+  padding: 1rem 1.1rem;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  min-width: 0;
+}
+
+.painel.largo {
+  grid-column: 1 / -1;
+}
+
+.painel h3 {
+  margin: 0 0 0.2rem;
+  font-size: 1rem;
+}
+
+.painel figcaption p {
+  font-size: 0.875rem;
+}
+
+/* No celular o desenho rola dentro do próprio cartão; a página nunca rola de lado. */
+.grafico {
+  overflow-x: auto;
+  margin-top: 0.5rem;
+}
+
+.grafico svg {
+  display: block;
+  width: 100%;
+  min-width: 460px;
+  height: auto;
+  overflow: visible;
+}
+
+/* Desenhos dos painéis largos têm viewBox maior: no celular rolam dentro do cartão em vez de encolher o texto. */
+.painel.largo .grafico svg {
+  min-width: 760px;
+}
+
+.grafico svg.calendario,
+.painel.largo .grafico svg.calendario {
+  min-width: 520px;
+}
+
+.grade {
+  stroke: var(--g-grade);
+  stroke-width: 1;
+}
+
+.eixo {
+  stroke: var(--g-eixo);
+  stroke-width: 1;
+}
+
+.rotulo-eixo {
+  fill: var(--suave);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rotulo-valor {
+  fill: var(--texto);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.area-alvo {
+  fill: transparent;
+}
+
+.alvo {
+  outline: none;
+  cursor: default;
+}
+
+.alvo:hover .marca,
+.alvo:focus-visible .marca {
+  opacity: 0.8;
+}
+
+.alvo:focus-visible .area-alvo {
+  fill: var(--g-saida-lavado);
+}
+
+.linha-serie {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.linha-tendencia {
+  stroke: var(--suave);
+  stroke-width: 1.5;
+}
+
+.linha-previsao {
+  stroke: var(--g-saida);
+  stroke-width: 2;
+  stroke-dasharray: 4 4;
+}
+
+.faixa-previsao {
+  fill: var(--g-saida-lavado);
+}
+
+.ponto {
+  stroke: var(--superficie);
+  stroke-width: 2;
+}
+
+.ponto.vazado {
+  fill: var(--superficie);
+  stroke: var(--g-saida);
+}
+
+.mira {
+  stroke: var(--g-eixo);
+  stroke-width: 1;
+  opacity: 0;
+}
+
+.alvo:hover .mira,
+.alvo:focus-visible .mira {
+  opacity: 1;
+}
+
+.celula:hover {
+  stroke: var(--texto);
+  stroke-width: 1.5;
+}
+
+.seq-0 { fill: var(--seq-0); background: var(--seq-0); }
+.seq-1 { fill: var(--seq-1); background: var(--seq-1); }
+.seq-2 { fill: var(--seq-2); background: var(--seq-2); }
+.seq-3 { fill: var(--seq-3); background: var(--seq-3); }
+.seq-4 { fill: var(--seq-4); background: var(--seq-4); }
+
+.legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--suave);
+}
+
+.legenda li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.chave-barra {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.chave-linha {
+  display: inline-block;
+  width: 14px;
+  height: 2px;
+  border-radius: 1px;
+}
+
+.ranking {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 0;
+  display: grid;
+  gap: 0.15rem;
+}
+
+.ranking li {
+  display: grid;
+  grid-template-columns: minmax(7rem, 11rem) 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.2rem 0.25rem;
+  border-radius: 6px;
+}
+
+.ranking li:hover,
+.ranking li:focus-visible {
+  background: var(--fundo);
+}
+
+.ranking-nome {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.9rem;
+}
+
+.ranking-trilho {
+  display: block;
+  height: 14px;
+}
+
+.ranking-barra {
+  display: block;
+  height: 100%;
+  border-radius: 0 4px 4px 0;
+  min-width: 2px;
+}
+
+.ranking-valor {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.ranking-valor small {
+  color: var(--suave);
+  display: inline-block;
+  width: 2.6rem;
+}
+
+.segmentada {
+  display: flex;
+  gap: 2px;
+  height: 28px;
+  margin-top: 1rem;
+}
+
+.segmento {
+  display: flex;
+  align-items: center;
+  padding-left: 0.5rem;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  min-width: 2px;
+}
+
+.segmento.neutro {
+  color: #0b0b0b;
+}
+
+.estatisticas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.5rem 1rem;
+  margin: 1rem 0 0;
+}
+
+.estatisticas dt {
+  color: var(--suave);
+  font-size: 0.8125rem;
+}
+
+.estatisticas dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ver-tabela {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.ver-tabela summary,
+.metodologia summary {
+  cursor: pointer;
+  color: var(--destaque);
+}
+
+.tabela-rolagem {
+  overflow-x: auto;
+}
+
+.ver-tabela .tabela-rolagem {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.ver-tabela table,
+.tabela-dados {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.ver-tabela th,
+.ver-tabela td,
+.tabela-dados th,
+.tabela-dados td {
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid var(--borda);
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Colunas de texto (nome, descrição, categoria) alinhadas à esquerda. */
+.ver-tabela th:first-child,
+.ver-tabela td:first-child,
+.tabela-dados th:first-child,
+.tabela-dados td:first-child,
+.tabela-dados .texto {
+  text-align: left;
+}
+
+.tabela-dados th {
+  color: var(--suave);
+  font-weight: 600;
+}
+
+.metodologia {
+  margin: 2rem 0 1rem;
+}
+
+.metodologia ul {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.dica {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 10;
+  pointer-events: none;
+  padding: 0.5rem 0.65rem;
+  min-width: 140px;
+  background: var(--superficie);
+  color: var(--texto);
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  font-size: 0.8125rem;
+}
+
+.dica-titulo {
+  color: var(--suave);
+  margin-bottom: 0.2rem;
+}
+
+.dica-linha {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.dica-linha i {
+  width: 12px;
+  height: 2px;
+  border-radius: 1px;
+}
+
+.dica-linha span {
+  color: var(--suave);
+}
+
+@media (max-width: 640px) {
+  .exportar {
+    margin-left: 0;
+  }
+
+  .ranking li {
+    grid-template-columns: minmax(5.5rem, 8rem) 1fr auto;
+    gap: 0.5rem;
+  }
+}
+
+@media print {
+  nav,
+  .filtros,
+  .ver-tabela,
+  .dica {
+    display: none;
+  }
+
+  .painel {
+    break-inside: avoid;
+  }
+}

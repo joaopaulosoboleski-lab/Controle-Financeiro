@@ -1,0 +1,257 @@
+:root {
+  --fundo: #f6f7f9;
+  --superficie: #ffffff;
+  --texto: #1f2933;
+  --suave: #667085;
+  --borda: #e2e5ea;
+  --destaque: #2f6f5e;
+  --entrada: #2e8b57;
+  --saida: #c0392b;
+
+  /* Gráficos (paleta validada para daltonismo e contraste nesta superfície). */
+  --g-entrada: #2a78d6;
+  --g-saida: #eb6834;
+  --g-saida-suave: #f5b393;
+  --g-saida-lavado: rgba(235, 104, 52, 0.12);
+  --g-negativo: #e34948;
+  --g-neutro: #c3c2b7;
+  --g-grade: #eceae4;
+  --g-eixo: #c3c2b7;
+  /* Escala sequencial de um tom (azul), do zero ao maior gasto. */
+  --seq-0: #f0efec;
+  --seq-1: #b7d3f6;
+  --seq-2: #6da7ec;
+  --seq-3: #2a78d6;
+  --seq-4: #184f95;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --g-entrada: #3987e5;
+    --g-saida: #d95926;
+    --g-saida-suave: #7a3c22;
+    --g-saida-lavado: rgba(217, 89, 38, 0.18);
+    --g-negativo: #e66767;
+    --g-neutro: #4a535c;
+    --g-grade: #28303760;
+    --g-eixo: #3a434c;
+    --seq-0: #262e36;
+    --seq-1: #184f95;
+    --seq-2: #256abf;
+    --seq-3: #5598e7;
+    --seq-4: #b7d3f6;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fundo: #14181c;
+    --superficie: #1d2329;
+    --texto: #e8ecef;
+    --suave: #9aa5b1;
+    --borda: #2c353d;
+    --destaque: #6fc2a8;
+    --entrada: #4cc38a;
+    --saida: #ef6f61;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, sans-serif;
+  background: var(--fundo);
+  color: var(--texto);
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 1rem;
+  line-height: 1.5;
+}
+
+h1 {
+  margin-top: 0;
+}
+
+a {
+  color: var(--destaque);
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--borda);
+}
+
+nav a {
+  font-weight: 600;
+  text-decoration: none;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+
+ul.lista {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.card a {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.15rem 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-left-width: 6px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.card a:hover {
+  border-color: var(--destaque);
+}
+
+.card small {
+  grid-column: 1 / -1;
+  color: var(--suave);
+}
+
+.card.entrada a {
+  border-left-color: var(--entrada);
+}
+
+.card.saida a {
+  border-left-color: var(--saida);
+}
+
+.card.entrada span {
+  color: var(--entrada);
+}
+
+.card.saida span {
+  color: var(--saida);
+}
+
+.resumo {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.resumo > div {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+}
+
+.resumo .saldo {
+  font-weight: 700;
+}
+
+.meses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.cor {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+}
+
+.formulario {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 320px;
+}
+
+.formulario label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+input,
+button {
+  font: inherit;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--borda);
+  border-radius: 6px;
+  background: var(--superficie);
+  color: var(--texto);
+}
+
+button {
+  cursor: pointer;
+}
+
+.formulario button {
+  background: var(--destaque);
+  border-color: var(--destaque);
+  color: var(--fundo);
+  font-weight: 600;
+}
+
+.erro {
+  color: var(--saida);
+}
+
+.sucesso {
+  color: var(--entrada);
+}
+
+.formulario label.opcao {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.card.usuario a {
+  border-left-color: var(--destaque);
+}
+
+.card.usuario span {
+  color: var(--suave);
+  font-size: 0.875rem;
+}
+
+nav .sair {
+  margin-left: auto;
+}
+
+nav .sair button {
+  padding: 0.15rem 0.6rem;
+}
+
+select {
+  font: inherit;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--borda);
+  border-radius: 6px;
+  background: var(--superficie);
+  color: var(--texto);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+button.perigo {
+  background: var(--saida);
+  border-color: var(--saida);
+  color: #fff;
+}
