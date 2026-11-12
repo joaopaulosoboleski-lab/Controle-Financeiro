@@ -8,6 +8,7 @@ ALTER TABLE contas       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE categorias   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE recorrencias ENABLE ROW LEVEL SECURITY;
 ALTER TABLE lancamentos  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tentativas_login ENABLE ROW LEVEL SECURITY; -- criada no seguranca.sql
 
 -- Views rodam com os privilégios de quem as consulta, e não do dono.
 ALTER VIEW saldo_contas          SET (security_invoker = on);

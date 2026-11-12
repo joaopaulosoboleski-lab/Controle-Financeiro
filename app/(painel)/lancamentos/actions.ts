@@ -14,7 +14,12 @@ import { exigirUsuario } from "@/lib/sessao";
 const ERRO_GERAL = "Não foi possível salvar agora. Tente novamente.";
 
 // Confere que conta e categoria são do usuário e que a categoria combina com o tipo.
-async function conferirDono(usuarioId: number, dados: DadosLancamento): Promise<string | null> {
+// Categoria arquivada (R9) só vale se já for a do lançamento sendo editado.
+async function conferirDono(
+  usuarioId: number,
+  dados: DadosLancamento,
+  lancamentoId?: number,
+): Promise<string | null> {
   const conta = await pool.query("SELECT 1 FROM contas WHERE conta_id = $1 AND usuario_id = $2", [
     dados.contaId,
     usuarioId,
@@ -22,8 +27,13 @@ async function conferirDono(usuarioId: number, dados: DadosLancamento): Promise<
   if (conta.rowCount === 0) return "Conta inválida.";
 
   const categoria = await pool.query<{ tipo: string }>(
-    "SELECT tipo FROM categorias WHERE categoria_id = $1 AND usuario_id = $2",
-    [dados.categoriaId, usuarioId],
+    `SELECT tipo FROM categorias
+     WHERE categoria_id = $1 AND usuario_id = $2
+       AND (ativa OR EXISTS (
+         SELECT 1 FROM lancamentos
+         WHERE lancamento_id = $3::int AND usuario_id = $2 AND categoria_id = $1
+       ))`,
+    [dados.categoriaId, usuarioId, lancamentoId ?? null],
   );
   if (categoria.rowCount === 0) return "Categoria inválida.";
   if (categoria.rows[0].tipo !== dados.tipo) {
@@ -77,7 +87,7 @@ export async function atualizarLancamento(
   const { dados } = resultado;
 
   try {
-    const erroDono = await conferirDono(usuarioId, dados);
+    const erroDono = await conferirDono(usuarioId, dados, id);
     if (erroDono) return { erro: erroDono, valores };
 
     const atualizado = await pool.query(
@@ -101,20 +111,23 @@ export async function excluirLancamento(formData: FormData): Promise<void> {
   const usuarioId = await exigirUsuario();
   const id = Number(formData.get("id"));
 
-  let falhou = !Number.isInteger(id);
-  if (!falhou) {
-    try {
-      await pool.query("DELETE FROM lancamentos WHERE lancamento_id = $1 AND usuario_id = $2", [
-        id,
-        usuarioId,
-      ]);
-    } catch {
-      falhou = true;
-    }
+  if (!Number.isInteger(id)) redirect("/lancamentos");
+
+  let resultado: "ok" | "nao-encontrado" | "falhou" = "ok";
+  try {
+    const excluido = await pool.query("DELETE FROM lancamentos WHERE lancamento_id = $1 AND usuario_id = $2", [
+      id,
+      usuarioId,
+    ]);
+    if (excluido.rowCount === 0) resultado = "nao-encontrado";
+  } catch {
+    resultado = "falhou";
   }
 
   // redirect() lança uma exceção interna, por isso fica fora do try/catch.
-  if (falhou) redirect(`/lancamentos/${id}/editar?erro=exclusao`);
+  if (resultado === "falhou") redirect(`/lancamentos/${id}/editar?erro=exclusao`);
+  // A página do lançamento responde "não encontrado" (não existe, ou é de outra pessoa).
+  if (resultado === "nao-encontrado") redirect(`/lancamentos/${id}`);
 
   revalidatePath("/lancamentos");
   revalidatePath("/dashboard");

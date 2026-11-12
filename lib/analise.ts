@@ -106,9 +106,13 @@ export type Analise = {
 // ---------- Período ----------
 
 const DATA = /^\d{4}-\d{2}-\d{2}$/;
+const MAXIMO_MESES = 120; // 10 anos
 
 function dataValida(d: string | undefined): d is string {
   if (!d || !DATA.test(d)) return false;
+  // Anos de 5 dígitos (10000+) viram "+010000-..." no toISOString e quebram as comparações de texto.
+  const ano = Number(d.slice(0, 4));
+  if (ano < 1900 || ano > 2100) return false;
   const t = new Date(`${d}T00:00:00Z`);
   return !Number.isNaN(t.getTime()) && t.toISOString().slice(0, 10) === d;
 }
@@ -267,6 +271,13 @@ export async function carregarAnalise(dePedido?: string, atePedido?: string): Pr
   let de = dataValida(dePedido) ? dePedido : (limites?.de ?? new Date().toISOString().slice(0, 10));
   let ate = dataValida(atePedido) ? atePedido : (limites?.ate ?? de);
   if (de > ate) [de, ate] = [ate, de];
+  // Os cálculos percorrem os lançamentos uma vez por mês do período: um intervalo absurdo
+  // (ex.: 1900 a 2100) pesaria na tela e nas exportações. Primeiro aproxima o período de onde há
+  // lançamentos; se ainda passar de MAXIMO_MESES, fica com os últimos MAXIMO_MESES até "ate".
+  if (limites && de < limites.de && ate >= limites.de) de = limites.de;
+  if (limites && ate > limites.ate && de <= limites.ate) ate = limites.ate;
+  const inicioPermitido = `${adicionarMeses(ate.slice(0, 7), -(MAXIMO_MESES - 1))}-01`;
+  if (de < inicioPermitido) de = inicioPermitido;
 
   const [{ rows }, { rows: contasLinhas }] = await Promise.all([
     pool.query<{

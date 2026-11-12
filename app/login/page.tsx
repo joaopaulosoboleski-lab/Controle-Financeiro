@@ -13,7 +13,11 @@ export default async function Login({
   return (
     <main>
       <h1>Entrar</h1>
-      {erro && <p className="erro">E-mail ou senha incorretos.</p>}
+      {erro === "bloqueado" ? (
+        <p className="erro">Muitas tentativas erradas. Espere 15 minutos e tente de novo.</p>
+      ) : (
+        erro && <p className="erro">E-mail ou senha incorretos.</p>
+      )}
       <form action={entrar} className="formulario">
         <label>
           E-mail

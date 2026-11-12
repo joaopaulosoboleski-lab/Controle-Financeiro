@@ -9,6 +9,21 @@ const nextConfig: NextConfig = {
     "/*": ["./certs/**/*"],
     "/**/*": ["./certs/**/*"],
   },
+  poweredByHeader: false,
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          // Ninguém pode embutir a Caderneta num iframe (evita clique enganado em "Excluir").
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "same-origin" },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

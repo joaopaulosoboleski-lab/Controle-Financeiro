@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { pool } from "@/lib/db";
 import { conferirSenha, gerarHash } from "@/lib/senha";
-import { exigirUsuario } from "@/lib/sessao";
+import { criarSessao, exigirUsuario, revogarSessoes } from "@/lib/sessao";
 import {
   ERRO_EMAIL_EM_USO,
   emailEmUso,
@@ -75,6 +75,9 @@ export async function trocarSenha(_anterior: EstadoSenha, formData: FormData): P
       usuarioId,
       await gerarHash(nova),
     ]);
+    // Senha nova derruba as sessões de outros aparelhos; este continua logado com um cookie novo.
+    await revogarSessoes(usuarioId);
+    await criarSessao(usuarioId);
   } catch {
     return { erro: ERRO_GERAL };
   }

@@ -18,6 +18,10 @@ const pool = new pg.Pool({
   connectionString: url.replace(/\?.*$/, ""),
   ssl: local ? undefined : { ca: readFileSync("certs/supabase-ca.crt", "utf8") },
 });
-const { rowCount } = await pool.query("UPDATE usuarios SET senha_hash = $1 WHERE email = $2", [hash, email]);
+// Mesma comparação do login (minúsculas); a senha nova derruba as sessões abertas.
+const { rowCount } = await pool.query(
+  "UPDATE usuarios SET senha_hash = $1, sessao_versao = sessao_versao + 1 WHERE lower(email) = lower($2)",
+  [hash, email.trim()],
+);
 console.log(rowCount ? `Senha definida para ${email}` : `Usuario nao encontrado: ${email}`);
 await pool.end();

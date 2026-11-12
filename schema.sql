@@ -1,5 +1,5 @@
 -- schema.sql — Caderneta da Claudia (PostgreSQL 14+)
--- Ordem de execucao: schema.sql -> dados.sql -> ajustar_sequencias.sql -> qualidade.sql -> admin.sql
+-- Ordem de execucao: schema.sql -> dados.sql -> ajustar_sequencias.sql -> qualidade.sql -> admin.sql -> seguranca.sql
 -- (supabase.sql por ultimo, so no Supabase)
 
 -- R1: acesso por pessoa. E-mail unico, senha guardada como hash.

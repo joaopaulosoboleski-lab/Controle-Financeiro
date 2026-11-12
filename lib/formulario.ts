@@ -42,6 +42,9 @@ export function lerValores(formData: FormData): ValoresFormulario {
 
 function dataValida(data: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) return false;
+  // Mesmo limite da Análise: um lançamento em 9999 quebraria os cálculos por mês.
+  const ano = Number(data.slice(0, 4));
+  if (ano < 1900 || ano > 2100) return false;
   const d = new Date(`${data}T00:00:00Z`);
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === data;
 }

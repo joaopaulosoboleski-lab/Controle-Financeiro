@@ -23,7 +23,7 @@ Não há testes automatizados nem linter configurados.
 
 ## Banco de dados
 
-- Scripts SQL na raiz, nesta ordem: `schema.sql` → `dados.sql` → `ajustar_sequencias.sql` → `qualidade.sql` → `admin.sql` (adiciona `usuarios.admin` e torna o usuário 1 admin; idempotente) → `supabase.sql` (este só no Supabase: liga RLS sem políticas e revoga `anon`/`authenticated`; o app usa o usuário dono, que ignora o RLS).
+- Scripts SQL na raiz, nesta ordem: `schema.sql` → `dados.sql` → `ajustar_sequencias.sql` → `qualidade.sql` → `admin.sql` (adiciona `usuarios.admin` e torna o usuário 1 admin; idempotente) → `seguranca.sql` (coluna `usuarios.sessao_versao`, índice único em `lower(email)` e tabela `tentativas_login`; idempotente) → `supabase.sql` (este só no Supabase: liga RLS sem políticas e revoga `anon`/`authenticated`; o app usa o usuário dono, que ignora o RLS).
 - Os `senha_hash` de `dados.sql` são fictícios: para entrar com um usuário de exemplo é preciso rodar `definir-senha.mjs`.
 - `DATABASE_URL` em `.env.local` decide o banco. **Hoje aponta para o Supabase (dados reais)**, não para o local. Escrever nele afeta o ambiente de verdade.
 - Supabase usa o *transaction pooler* (Supavisor): as conexões do servidor são compartilhadas entre clientes. **Nunca rode `SET` de sessão** (ex.: `SET default_transaction_read_only = on`): ele fica preso na conexão do pooler e quebra o app para todos. Para leituras seguras use `BEGIN READ ONLY … ROLLBACK`.
@@ -33,7 +33,7 @@ Não há testes automatizados nem linter configurados.
 
 **Modelo (schema.sql).** Toda tabela tem `usuario_id`. Lançamentos e recorrências referenciam conta e categoria por **FK composta** `(id, usuario_id)`, então o banco impede cruzar donos (R8). Não há `ON DELETE CASCADE` (R9): categoria em uso se aposenta com `ativa = false`. O saldo não é guardado; vem da view `saldo_contas` (R5). Dinheiro é `NUMERIC(10,2)`, valor sempre positivo e o sinal vem de `tipo` (`entrada`/`saida`).
 
-**Sessão e acesso.** [lib/sessao.ts](lib/sessao.ts): cookie `sessao` = `<usuario_id>.<HMAC-SHA256 com SESSION_SECRET>`. Não há middleware/proxy: a proteção é `exigirUsuario()`, que redireciona para `/login`. Senhas: scrypt no formato `scrypt$<sal>$<hash>` ([lib/senha.ts](lib/senha.ts)).
+**Sessão e acesso.** [lib/sessao.ts](lib/sessao.ts): cookie `sessao` = `<usuario_id>.<emitido_em>.<sessao_versao>.<HMAC-SHA256 com SESSION_SECRET>`. Expira em 7 dias no servidor e a versão é conferida no banco a cada pedido (`lerUsuarioId` usa `cache()` do React); `revogarSessoes()` soma 1 na versão e derruba todas as sessões (feito ao trocar a senha). O login bloqueia o e-mail por 15 min após 5 falhas (`tentativas_login`). Não há middleware/proxy: a proteção é `exigirUsuario()`, que redireciona para `/login`. Senhas: scrypt no formato `scrypt$<sal>$<hash>` ([lib/senha.ts](lib/senha.ts)).
 
 **Administrador.** Só quem tem `usuarios.admin = true` acessa `/usuarios` (cadastrar, editar e excluir usuários). O papel é lido do banco a cada pedido, nunca do cookie. Toda página e action do painel começa com `exigirAdmin()` ([lib/usuarios.ts](lib/usuarios.ts)), que responde "não encontrado" para quem não é admin; o menu usa `ehAdmin()`. Regras: o admin não pode se excluir nem tirar o próprio admin (garante que sempre exista um), e usuário com qualquer conta, categoria, recorrência ou lançamento não pode ser excluído (R9). A validação de nome, e-mail e senha também fica em `lib/usuarios.ts` e é compartilhada com `/perfil`.
 

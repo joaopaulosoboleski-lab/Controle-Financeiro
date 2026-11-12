@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { pool } from "@/lib/db";
 import { gerarHash } from "@/lib/senha";
+import { criarSessao, revogarSessoes } from "@/lib/sessao";
 import {
   ERRO_EMAIL_EM_USO,
   emailEmUso,
@@ -81,6 +82,11 @@ export async function atualizarUsuario(_anterior: EstadoUsuario, formData: FormD
       [id, limpo.nome, limpo.email, valores.admin, senha ? await gerarHash(senha) : null],
     );
     if (resultado.rowCount === 0) return { erro: "Usuário não encontrado.", valores };
+    // Senha trocada pelo admin: a pessoa precisa entrar de novo em todos os aparelhos.
+    if (senha) {
+      await revogarSessoes(id);
+      if (id === adminId) await criarSessao(id); // o próprio admin continua logado aqui
+    }
   } catch (erro) {
     return { erro: violouUnico(erro) ? ERRO_EMAIL_EM_USO : ERRO_GERAL, valores };
   }

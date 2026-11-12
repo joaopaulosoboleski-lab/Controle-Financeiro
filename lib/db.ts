@@ -21,6 +21,12 @@ function urlDoBanco(): string | undefined {
 export const pool =
   globalParaPool.pool ?? new Pool({ connectionString: urlDoBanco(), ssl: opcoesSsl() });
 
+// Uma conexão ociosa que cai (o pooler do Supabase fecha as paradas) emite "error" no pool.
+// Sem este ouvinte o Node derruba o processo; o pool descarta a conexão e abre outra quando precisar.
+if (!globalParaPool.pool) {
+  pool.on("error", (erro) => console.error("Conexão ociosa do banco caiu:", erro.message));
+}
+
 if (process.env.NODE_ENV !== "production") {
   globalParaPool.pool = pool;
 }

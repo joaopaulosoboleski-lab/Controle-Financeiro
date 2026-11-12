@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { pool } from "@/lib/db";
 import { exigirUsuario } from "@/lib/sessao";
 
@@ -54,14 +55,15 @@ function paraLancamento(linha: LinhaLancamento): Lancamento {
 }
 
 // Meses (YYYY-MM) que tem lancamentos, do mais recente ao mais antigo.
-export async function listarMeses(): Promise<string[]> {
+// cache(): resolverMes e a página pedem a lista no mesmo pedido; o banco é consultado uma vez.
+export const listarMeses = cache(async (): Promise<string[]> => {
   const { rows } = await pool.query<{ mes: string }>(
     `SELECT DISTINCT to_char(data_lancamento, 'YYYY-MM') AS mes
      FROM lancamentos WHERE usuario_id = $1 ORDER BY mes DESC`,
     [await exigirUsuario()],
   );
   return rows.map((r) => r.mes);
-}
+});
 
 // Mes valido (YYYY-MM) ou o mais recente disponivel.
 export async function resolverMes(mes: string | undefined): Promise<string | undefined> {
@@ -150,7 +152,7 @@ export async function listarCategorias(incluirId?: number): Promise<OpcaoCategor
   return rows;
 }
 
-export type Alerta ={ motivo: string; quantidade: number };
+export type Alerta = { motivo: string; quantidade: number };
 
 // Lancamentos que merecem revisao (nada e alterado ou apagado).
 export async function alertasDeQualidade(): Promise<Alerta[]> {
