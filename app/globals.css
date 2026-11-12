@@ -337,3 +337,68 @@ input[type="color"] {
   height: 2.5rem;
   width: 4rem;
 }
+
+/* ---------- Entrada por foto (leitor de comprovante) ---------- */
+
+.leitor {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+}
+
+.leitor p {
+  margin: 0;
+}
+
+.leitor-botoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+/* Alvos grandes: é usado com o polegar, segurando o celular. */
+.leitor-botoes button {
+  min-height: 3rem;
+  font-weight: 600;
+  background: var(--destaque);
+  border-color: var(--destaque);
+  color: var(--fundo);
+}
+
+.leitor-botoes button.secundario {
+  background: var(--superficie);
+  color: var(--destaque);
+}
+
+.leitor progress {
+  width: 100%;
+  height: 0.75rem;
+  accent-color: var(--destaque);
+}
+
+.leitor .avisos {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--saida);
+}
+
+.leitor details pre {
+  max-height: 12rem;
+  overflow: auto;
+  padding: 0.5rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.8rem;
+  background: var(--fundo);
+  border-radius: 6px;
+}
+
+@media (max-width: 360px) {
+  .leitor-botoes {
+    grid-template-columns: 1fr;
+  }
+}

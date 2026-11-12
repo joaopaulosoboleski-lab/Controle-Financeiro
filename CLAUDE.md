@@ -56,6 +56,8 @@ Os testes cobrem só funções puras (validação, estatística, datas): não ac
 
 **Confirmação de recorrências (R6/R7).** `/recorrencias/confirmar?mes=YYYY-MM` lista as recorrências vigentes no mês (início antes do fim do mês; fim, se houver, a partir do dia 1) e o lançamento que já saiu de cada uma. Confirmar faz um `INSERT ... SELECT` com `recorrencia_id`, tipo vindo da categoria e `NOT EXISTS` no mês, dentro de uma transação com `pg_advisory_xact_lock` por usuário (cliques simultâneos não duplicam). A data confirmada precisa estar dentro do mês, porque é assim que se sabe se o mês já foi lançado. A FK `lancamentos.recorrencia_id` é simples (não composta): o dono é conferido no `WHERE r.usuario_id = $1`.
 
+**Entrada por foto (`/lancamentos/comprovante`).** OCR no próprio celular com `tesseract.js` (português; núcleo e idioma baixados da CDN jsDelivr no 1º uso e guardados em cache). [components/LeitorComprovante.tsx](components/LeitorComprovante.tsx) abre a câmera (`capture="environment"`) ou a galeria, reduz a foto e passa para cinza antes de ler. [lib/ocr-entrada.ts](lib/ocr-entrada.ts) é puro e testado: reconhece PIX/TED, holerite e recibo/NFS-e e extrai valor (em centavos), data, descrição e categoria sugerida. A foto não é enviada nem guardada (anexos estão fora do escopo); o resultado só preenche o `FormularioLancamento`, e quem salva é a action `criarLancamento` de sempre.
+
 **Formulários cliente** em `components/` usam `useActionState` + `useFormStatus` e recebem a action por prop ou importam de `actions.ts`.
 
 ## Ao testar pelo HTTP

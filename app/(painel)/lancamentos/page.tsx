@@ -18,6 +18,8 @@ export default async function ListaLancamentos({
         <p>Nenhum lançamento cadastrado.</p>
         <p>
           <Link href="/lancamentos/novo">+ Novo lançamento</Link>
+          {" · "}
+          <Link href="/lancamentos/comprovante">📷 Entrada por foto</Link>
         </p>
       </main>
     );
@@ -30,6 +32,8 @@ export default async function ListaLancamentos({
       <h1>Lançamentos</h1>
       <p>
         <Link href="/lancamentos/novo">+ Novo lançamento</Link>
+        {" · "}
+        <Link href="/lancamentos/comprovante">📷 Entrada por foto</Link>
       </p>
       <SeletorMes rota="/lancamentos" meses={meses} atual={mes} />
       <ul className="lista">
