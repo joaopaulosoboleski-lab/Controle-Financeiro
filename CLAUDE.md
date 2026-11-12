@@ -14,12 +14,14 @@ Caderneta da Cláudia: controle financeiro pessoal (Next.js 16 App Router + Reac
 npm run dev                 # servidor em http://localhost:3000 (Turbopack)
 npm run build               # build de produção (também faz a checagem de tipos)
 npx tsc --noEmit -p .       # checagem de tipos rápida
-npm run db:start            # liga o PostgreSQL local (porta 5433, dados em %USERPROFILE%\caderneta-pgdata)
+npm test                    # testes (Vitest) das funções puras em testes/*.test.ts
+npm run lint                # ESLint (eslint-config-next + typescript)
+npm run db:start            # liga o PostgreSQL local (porta 5434 — a 5433 costuma estar com o Docker —, dados em %USERPROFILE%\caderneta-pgdata)
 npm run db:stop
 node --env-file=.env.local scripts/definir-senha.mjs <email> <senha>   # define a senha de um usuário
 ```
 
-Não há testes automatizados nem linter configurados.
+Os testes cobrem só funções puras (validação, estatística, datas): não acessam banco nem servidor. Validação nova vai para um arquivo sem banco (ex.: [lib/validacao-cadastros.ts](lib/validacao-cadastros.ts)) para poder ser testada.
 
 ## Banco de dados
 
@@ -49,6 +51,10 @@ Não há testes automatizados nem linter configurados.
 **Rotas.** `app/(painel)/` é o grupo autenticado; seu `layout.tsx` tem o menu. `app/login` fica fora dele. Lista e dashboard são filtrados por mês via `?mes=YYYY-MM` (`resolverMes` cai no mês mais recente com lançamentos).
 
 **Aba Análise (`/analise`).** Um único cálculo alimenta tela, Excel e PDF: `carregarAnalise(de, ate)` em [lib/analise.ts](lib/analise.ts) busca os lançamentos do período e devolve tudo pronto (mensal, Pareto, distribuição, atípicos, previsão, conclusões em texto). As fórmulas estatísticas puras ficam em [lib/estatistica.ts](lib/estatistica.ts). Os gráficos são SVG feitos à mão no servidor ([components/graficos/](components/graficos/)), sem biblioteca; as cores são tokens `--g-*`/`--seq-*` em `globals.css`, com paleta validada para daltonismo nos dois temas; a dica ao passar o mouse vem de `data-dica` lido por um único componente cliente (`Dicas.tsx`). As exportações são rotas GET (`/analise/excel`, `/analise/pdf`) com `exceljs` e `pdfkit`, ambos em `serverExternalPackages` no `next.config.ts` (o pdfkit lê as fontes .afm do node_modules). No PDF, as fontes padrão são WinAnsi: texto passa por `t()` para trocar caracteres como `−`, `α`, `▲`.
+
+**Cadastros.** `/contas`, `/categorias` e `/recorrencias` seguem o mesmo padrão de lançamentos (consultas em [lib/cadastros.ts](lib/cadastros.ts), validação em `lib/validacao-cadastros.ts`). Regras: conta/categoria/recorrência em uso não se exclui (R9); categoria em uso não troca entre entrada e saída e é **arquivada** (`ativa = false`), saindo dos formulários mas ficando nas edições que já a usam; saldo inicial aceita zero e negativo. Estas actions usam `revalidatePath("/", "layout")`, porque nomes e saldos aparecem em quase todas as telas.
+
+**Confirmação de recorrências (R6/R7).** `/recorrencias/confirmar?mes=YYYY-MM` lista as recorrências vigentes no mês (início antes do fim do mês; fim, se houver, a partir do dia 1) e o lançamento que já saiu de cada uma. Confirmar faz um `INSERT ... SELECT` com `recorrencia_id`, tipo vindo da categoria e `NOT EXISTS` no mês, dentro de uma transação com `pg_advisory_xact_lock` por usuário (cliques simultâneos não duplicam). A data confirmada precisa estar dentro do mês, porque é assim que se sabe se o mês já foi lançado. A FK `lancamentos.recorrencia_id` é simples (não composta): o dono é conferido no `WHERE r.usuario_id = $1`.
 
 **Formulários cliente** em `components/` usam `useActionState` + `useFormStatus` e recebem a action por prop ou importam de `actions.ts`.
 

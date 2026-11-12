@@ -40,7 +40,26 @@ export function lerValores(formData: FormData): ValoresFormulario {
   };
 }
 
-function dataValida(data: string): boolean {
+// Lê um valor em reais digitado ("1234,56", "1.234,56" ou "1234.56") e devolve "1234.56",
+// pronto para NUMERIC(10,2); ou a mensagem de erro.
+export function lerDinheiro(
+  bruto: string,
+  { permitirNegativo = false, permitirZero = false } = {},
+): { valor: string; numero: number } | { erro: string } {
+  let texto = bruto.trim().replace(/\s/g, "");
+  // Com vírgula, ela é o separador decimal e os pontos são de milhar.
+  if (texto.includes(",")) texto = texto.replace(/\./g, "").replace(",", ".");
+  const negativo = texto.startsWith("-");
+  if (negativo) texto = texto.slice(1);
+  if (!/^\d+(\.\d{1,2})?$/.test(texto)) return { erro: "Informe um valor válido, com no máximo 2 casas decimais." };
+  if (negativo && !permitirNegativo) return { erro: "O valor deve ser maior que zero." };
+  const numero = Number(texto) * (negativo ? -1 : 1);
+  if (numero === 0 && !permitirZero) return { erro: "O valor deve ser maior que zero." };
+  if (Math.abs(numero) > VALOR_MAXIMO) return { erro: "O valor é grande demais." };
+  return { valor: numero.toFixed(2), numero };
+}
+
+export function dataValida(data: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) return false;
   // Mesmo limite da Análise: um lançamento em 9999 quebraria os cálculos por mês.
   const ano = Number(data.slice(0, 4));
@@ -55,13 +74,8 @@ export function validar(v: ValoresFormulario): { dados: DadosLancamento } | { er
   if (!descricao) return { erro: "Preencha a descrição." };
   if (descricao.length > 100) return { erro: "A descrição pode ter no máximo 100 caracteres." };
 
-  const textoValor = v.valor.trim().replace(",", ".");
-  if (!/^\d+(\.\d{1,2})?$/.test(textoValor)) {
-    return { erro: "Informe um valor válido, com no máximo 2 casas decimais." };
-  }
-  const numero = Number(textoValor);
-  if (numero <= 0) return { erro: "O valor deve ser maior que zero." };
-  if (numero > VALOR_MAXIMO) return { erro: "O valor é grande demais." };
+  const dinheiro = lerDinheiro(v.valor);
+  if ("erro" in dinheiro) return { erro: dinheiro.erro };
 
   if (v.tipo !== "entrada" && v.tipo !== "saida") return { erro: "Escolha entrada ou saída." };
   if (!dataValida(v.data)) return { erro: "Informe uma data válida." };
@@ -72,6 +86,6 @@ export function validar(v: ValoresFormulario): { dados: DadosLancamento } | { er
   if (!Number.isInteger(categoriaId) || categoriaId <= 0) return { erro: "Escolha a categoria." };
 
   return {
-    dados: { descricao, valor: numero.toFixed(2), tipo: v.tipo, data: v.data, contaId, categoriaId },
+    dados: { descricao, valor: dinheiro.valor, tipo: v.tipo, data: v.data, contaId, categoriaId },
   };
 }

@@ -22,6 +22,16 @@ export default async function DetalheLancamento({
       <p>Categoria: {lancamento.categoria}</p>
       <p>Conta: {lancamento.conta}</p>
       <p>Data: {formatarData(lancamento.data)}</p>
+      <p>
+        Origem:{" "}
+        {lancamento.recorrenciaId ? (
+          <>
+            recorrência <Link href={`/recorrencias/${lancamento.recorrenciaId}/editar`}>{lancamento.recorrencia}</Link>
+          </>
+        ) : (
+          "avulso"
+        )}
+      </p>
       <Link href={`/lancamentos/${lancamento.id}/editar`}>Editar</Link>
       {" · "}
       <Link href="/lancamentos">Voltar para a lista</Link>

@@ -12,6 +12,9 @@ export type Lancamento = {
   conta: string;
   categoriaId: number;
   contaId: number;
+  // R7: recorrência que originou o lançamento (null = avulso).
+  recorrenciaId: number | null;
+  recorrencia: string | null;
 };
 
 export type Resumo = { entradas: number; saidas: number; saldo: number };
@@ -28,16 +31,19 @@ type LinhaLancamento = {
   conta: string;
   categoria_id: number;
   conta_id: number;
+  recorrencia_id: number | null;
+  recorrencia: string | null;
 };
 
 const SELECT_LANCAMENTO = `
   SELECT l.lancamento_id AS id, l.descricao, l.valor::text AS valor, l.tipo,
          to_char(l.data_lancamento, 'YYYY-MM-DD') AS data,
          cat.nome AS categoria, c.nome AS conta,
-         l.categoria_id, l.conta_id
+         l.categoria_id, l.conta_id, r.recorrencia_id, r.descricao AS recorrencia
   FROM lancamentos l
   JOIN categorias cat ON cat.categoria_id = l.categoria_id AND cat.usuario_id = l.usuario_id
   JOIN contas c ON c.conta_id = l.conta_id AND c.usuario_id = l.usuario_id
+  LEFT JOIN recorrencias r ON r.recorrencia_id = l.recorrencia_id AND r.usuario_id = l.usuario_id
 `;
 
 function paraLancamento(linha: LinhaLancamento): Lancamento {
@@ -51,6 +57,8 @@ function paraLancamento(linha: LinhaLancamento): Lancamento {
     conta: linha.conta,
     categoriaId: linha.categoria_id,
     contaId: linha.conta_id,
+    recorrenciaId: linha.recorrencia_id,
+    recorrencia: linha.recorrencia,
   };
 }
 

@@ -9,8 +9,11 @@ export default async function PainelLayout({ children }: { children: React.React
     <>
       <nav>
         <Link href="/lancamentos">Lançamentos</Link>
+        <Link href="/recorrencias">Recorrências</Link>
         <Link href="/dashboard">Dashboard</Link>
         <Link href="/analise">Análise</Link>
+        <Link href="/contas">Contas</Link>
+        <Link href="/categorias">Categorias</Link>
         <Link href="/perfil">Meu perfil</Link>
         {admin && <Link href="/usuarios">Usuários</Link>}
         <form action={sair} className="sair">

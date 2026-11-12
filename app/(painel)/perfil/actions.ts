@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { pool } from "@/lib/db";
 import { conferirSenha, gerarHash } from "@/lib/senha";
-import { criarSessao, exigirUsuario, revogarSessoes } from "@/lib/sessao";
+import { redirect } from "next/navigation";
+import { criarSessao, encerrarSessao, exigirUsuario, revogarSessoes } from "@/lib/sessao";
 import {
   ERRO_EMAIL_EM_USO,
   emailEmUso,
@@ -83,4 +84,13 @@ export async function trocarSenha(_anterior: EstadoSenha, formData: FormData): P
   }
 
   return { sucesso: "Senha alterada." };
+}
+
+// Derruba as sessões em todos os aparelhos (inclusive este), por exemplo depois de usar
+// um computador emprestado. Para voltar, é preciso entrar de novo.
+export async function sairDeTodos(): Promise<void> {
+  const usuarioId = await exigirUsuario();
+  await revogarSessoes(usuarioId);
+  await encerrarSessao();
+  redirect("/login");
 }

@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import BotaoExcluir from "@/components/BotaoExcluir";
+import { sairDeTodos } from "./actions";
 import { FormularioDados, FormularioSenha } from "@/components/FormulariosPerfil";
 import { formatarData } from "@/lib/lancamentos";
 import { buscarPerfil } from "@/lib/perfil";
@@ -48,6 +50,15 @@ export default async function Perfil() {
 
       <h2>Trocar senha</h2>
       <FormularioSenha />
+
+      <h2>Sessões</h2>
+      <p>Esqueceu a Caderneta aberta em outro aparelho? Saia de todos de uma vez (inclusive deste).</p>
+      <BotaoExcluir
+        action={sairDeTodos}
+        texto="Sair de todos os aparelhos"
+        enviando="Saindo..."
+        confirmacao="Sair da Caderneta em todos os aparelhos, inclusive neste?"
+      />
     </main>
   );
 }

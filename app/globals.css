@@ -255,3 +255,85 @@ button.perigo {
   border-color: var(--saida);
   color: #fff;
 }
+
+/* ---------- Cadastros (contas, categorias, recorrências) ---------- */
+
+.formulario small {
+  color: var(--suave);
+}
+
+.card.categoria a {
+  border-left-color: var(--cor-categoria, var(--borda));
+}
+
+.card.categoria span {
+  color: var(--suave);
+  font-size: 0.875rem;
+}
+
+.card.arquivada a {
+  opacity: 0.65;
+}
+
+/* Confirmação de recorrências: cada card é um pequeno formulário. */
+.confirmacao .card form {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  align-items: end;
+  gap: 0.35rem 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-left-width: 6px;
+  border-radius: 8px;
+}
+
+.confirmacao .card.entrada form {
+  border-left-color: var(--entrada);
+}
+
+.confirmacao .card.saida form {
+  border-left-color: var(--saida);
+}
+
+.confirmacao .card form > strong,
+.confirmacao .card form > small {
+  grid-column: 1 / -1;
+}
+
+.confirmacao .card form small {
+  color: var(--suave);
+}
+
+.confirmacao label {
+  display: grid;
+  gap: 0.15rem;
+  font-size: 0.875rem;
+  min-width: 0;
+}
+
+.confirmacao input {
+  width: 100%;
+}
+
+.confirmacao button {
+  background: var(--destaque);
+  border-color: var(--destaque);
+  color: var(--fundo);
+  font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .confirmacao .card form {
+    grid-template-columns: 1fr 1fr;
+  }
+  .confirmacao .card form button {
+    grid-column: 1 / -1;
+  }
+}
+
+input[type="color"] {
+  padding: 0.15rem;
+  height: 2.5rem;
+  width: 4rem;
+}

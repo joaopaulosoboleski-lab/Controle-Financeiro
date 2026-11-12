@@ -1,3 +1,4 @@
+import Link from "next/link";
 import FormularioLancamento from "@/components/FormularioLancamento";
 import { listarCategorias, listarContas } from "@/lib/lancamentos";
 import { criarLancamento } from "../actions";
@@ -10,6 +11,12 @@ export default async function NovoLancamento() {
   return (
     <main>
       <h1>Novo lançamento</h1>
+      {(contas.length === 0 || categorias.length === 0) && (
+        <p className="erro" role="alert">
+          Antes de lançar, cadastre pelo menos uma <Link href="/contas/nova">conta</Link> e uma{" "}
+          <Link href="/categorias/nova">categoria</Link>.
+        </p>
+      )}
       <FormularioLancamento
         action={criarLancamento}
         contas={contas}
