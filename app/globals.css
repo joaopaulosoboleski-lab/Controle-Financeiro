@@ -528,7 +528,7 @@ main.entrada .formulario {
   top: 0;
   z-index: 10;
   margin: 0 calc(-1 * max(1rem, env(safe-area-inset-left))) 1.25rem;
-  padding: max(0.6rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) 0
+  padding: max(0.6rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) 0.6rem
     max(1rem, env(safe-area-inset-left));
   background: var(--fundo);
   border-bottom: 1px solid var(--borda);
@@ -543,57 +543,156 @@ main.entrada .formulario {
 
 .topo-marca {
   text-decoration: none;
+  min-width: 0;
 }
 
-.topo .sair button {
-  min-height: 36px;
-  padding: 0.15rem 0.8rem;
+/* Some da tela, mas o leitor de tela lê ("Abrir menu", "Fechar menu"). */
+.so-leitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-/* Uma linha só, rolando de lado no celular (em vez de quebrar em três linhas). */
+/* Botão ☰ e ✕: alvos de 44px. */
+.menu-botao,
+.menu-fechar {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  color: var(--texto);
+  background: transparent;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.menu-fechar {
+  border-color: transparent;
+}
+
+/* Fundo escuro atrás da gaveta: tocar nele fecha. */
+.menu-fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0s linear 0.2s;
+}
+
+.menu-fundo[data-aberto] {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.2s ease;
+}
+
+/* Gaveta lateral (entra pela direita, perto do polegar). Fechada fica invisível também para o
+   teclado e o leitor de tela (visibility), não só fora da tela. */
+.menu-gaveta {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 21;
+  display: flex;
+  flex-direction: column;
+  width: min(82vw, 320px);
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--superficie);
+  border-left: 1px solid var(--borda);
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.18);
+  transform: translateX(100%);
+  visibility: hidden;
+  transition: transform 0.25s ease, visibility 0s linear 0.25s;
+}
+
+.menu-gaveta[data-aberto] {
+  transform: none;
+  visibility: visible;
+  transition: transform 0.25s ease;
+}
+
+.gaveta-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.5rem 0.5rem 1rem;
+  border-bottom: 1px solid var(--borda);
+}
+
 .menu-itens {
   display: flex;
-  gap: 0.25rem;
-  overflow-x: auto;
-  scrollbar-width: none;
-  scroll-snap-type: x proximity;
-  -webkit-overflow-scrolling: touch;
-  /* Esmaece as pontas para indicar que dá para rolar. */
-  mask-image: linear-gradient(to right, transparent 0, #000 0.75rem, #000 calc(100% - 1.5rem), transparent 100%);
-}
-
-.menu-itens::-webkit-scrollbar {
-  display: none;
+  flex-direction: column;
+  padding: 0.5rem 0;
 }
 
 .menu-itens a {
-  flex: none;
-  scroll-snap-align: start;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  min-height: 44px;
-  padding: 0 0.7rem;
+  min-height: 48px;
+  padding: 0 1rem;
   font-weight: 600;
   text-decoration: none;
-  color: var(--suave);
-  border-bottom: 3px solid transparent;
+  color: var(--texto);
+  border-left: 4px solid transparent;
 }
 
 .menu-itens a:hover {
-  color: var(--texto);
+  color: var(--destaque);
 }
 
-/* Página atual: cor + sublinhado grosso (não depende só da cor). */
+/* Página atual: cor + barra grossa (não depende só da cor). */
 .menu-itens a[aria-current="page"] {
   color: var(--destaque);
-  border-bottom-color: var(--destaque);
+  border-left-color: var(--destaque);
+  background: color-mix(in srgb, var(--destaque) 10%, transparent);
+}
+
+.gaveta-rodape {
+  margin-top: auto;
+  padding: 1rem;
+  border-top: 1px solid var(--borda);
+}
+
+.gaveta-rodape .sair button {
+  width: 100%;
+  min-height: 44px;
 }
 
 .menu-itens a:focus-visible,
-.topo-marca:focus-visible {
+.topo-marca:focus-visible,
+.menu-botao:focus-visible,
+.menu-fechar:focus-visible {
   outline: 2px solid var(--destaque);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+.menu-itens a:focus-visible {
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-fundo,
+  .menu-fundo[data-aberto],
+  .menu-gaveta,
+  .menu-gaveta[data-aberto] {
+    transition: none;
+  }
 }
 
 /* ---------- Responsivo ---------- */
@@ -667,9 +766,72 @@ main.entrada .formulario {
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
   }
 
-  .menu-itens {
-    mask-image: none;
+  /* Menu sempre visível, numa linha abaixo da logo: sem botão ☰ nem gaveta. */
+  .topo {
+    padding-bottom: 0;
+  }
+
+  .topo-linha {
     flex-wrap: wrap;
+    row-gap: 0.25rem;
+  }
+
+  .menu-botao,
+  .menu-fundo,
+  .gaveta-topo {
+    display: none;
+  }
+
+  .menu-gaveta {
+    position: static;
+    flex: 1 0 100%;
+    flex-direction: row;
+    align-items: center;
+    width: auto;
+    padding: 0;
+    overflow: visible;
+    background: none;
+    border: 0;
+    box-shadow: none;
+    transform: none;
+    visibility: visible;
+    transition: none;
+  }
+
+  .menu-itens {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    padding: 0;
+  }
+
+  .menu-itens a {
+    min-height: 44px;
+    padding: 0 0.7rem;
+    color: var(--suave);
+    border-left: 0;
+    border-bottom: 3px solid transparent;
+  }
+
+  .menu-itens a:hover {
+    color: var(--texto);
+  }
+
+  .menu-itens a[aria-current="page"] {
+    border-bottom-color: var(--destaque);
+    background: none;
+  }
+
+  .gaveta-rodape {
+    margin: 0 0 0 auto;
+    padding: 0;
+    border: 0;
+  }
+
+  .gaveta-rodape .sair button {
+    width: auto;
+    min-height: 36px;
+    padding: 0.15rem 0.8rem;
   }
 }
 

@@ -15,13 +15,16 @@ export default async function PainelLayout({ children }: { children: React.React
           <Link href="/lancamentos" className="topo-marca" aria-label="Início">
             <Logo tamanho={30} dono={nome} />
           </Link>
-          <form action={sair} className="sair">
-            <button type="submit">Sair</button>
-          </form>
+          {/* O menu (botão ☰ + gaveta) é cliente; o "Sair" é Server Action e entra pronto no rodapé dele. */}
+          <MenuPrincipal
+            admin={admin}
+            rodape={
+              <form action={sair} className="sair">
+                <button type="submit">Sair</button>
+              </form>
+            }
+          />
         </div>
-        <nav aria-label="Menu principal">
-          <MenuPrincipal admin={admin} />
-        </nav>
       </header>
       {children}
     </>
