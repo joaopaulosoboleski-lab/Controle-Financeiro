@@ -7,6 +7,8 @@ export type ValoresFormulario = {
   data: string;
   contaId: string;
   categoriaId: string;
+  // Só na criação: "Ainda não aconteceu". Fica fora do saldo até ser confirmado.
+  previsto?: boolean;
 };
 
 export type EstadoFormulario = {
@@ -88,4 +90,20 @@ export function validar(v: ValoresFormulario): { dados: DadosLancamento } | { er
   return {
     dados: { descricao, valor: dinheiro.valor, tipo: v.tipo, data: v.data, contaId, categoriaId },
   };
+}
+
+// ---------- Confirmação de lançamento previsto ----------
+
+export type ValoresConfirmacao = { valor: string; data: string; contaId: string };
+export type EstadoConfirmacao = { erro?: string; valores?: ValoresConfirmacao };
+export type DadosConfirmacao = { valor: string; data: string; contaId: number };
+
+// Ao confirmar, só valor, data e conta podem mudar (tipo e categoria ficam como estavam).
+export function validarConfirmacao(v: ValoresConfirmacao): { dados: DadosConfirmacao } | { erro: string } {
+  const dinheiro = lerDinheiro(v.valor);
+  if ("erro" in dinheiro) return { erro: dinheiro.erro };
+  if (!dataValida(v.data)) return { erro: "Informe uma data válida." };
+  const contaId = Number(v.contaId);
+  if (!Number.isInteger(contaId) || contaId <= 0) return { erro: "Escolha a conta." };
+  return { dados: { valor: dinheiro.valor, data: v.data, contaId } };
 }

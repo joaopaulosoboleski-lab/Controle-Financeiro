@@ -16,7 +16,18 @@ export default async function DetalheLancamento({
 
   return (
     <main>
-      <h1>{lancamento.descricao}</h1>
+      <h1>
+        {lancamento.previsto && <span className="selo">{lancamento.vencido ? "VENCIDO" : "PREVISTO"}</span>}{" "}
+        {lancamento.descricao}
+      </h1>
+      {lancamento.previsto && (
+        <p>
+          Ainda não aconteceu: <strong>não entra no saldo</strong> até você confirmar.{" "}
+          <Link href={`/lancamentos/${lancamento.id}/confirmar`} className="botao-confirmar">
+            Confirmar lançamento
+          </Link>
+        </p>
+      )}
       <p>Valor: {formatarValor(lancamento.valor)}</p>
       <p>Tipo: {lancamento.tipo === "entrada" ? "Entrada" : "Saída"}</p>
       <p>Categoria: {lancamento.categoria}</p>

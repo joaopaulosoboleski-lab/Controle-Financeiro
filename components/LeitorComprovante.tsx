@@ -165,6 +165,7 @@ export default function LeitorComprovante({ action, contas, categorias, hoje }: 
             categoriaId: String(sugerirCategoria(fase.leitura.tipo, categorias) ?? ""),
           }}
           textoBotao="Salvar entrada"
+          permitirPrevisto
         />
       ) : (
         <p>

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { sair } from "@/app/login/actions";
+import Logo from "@/components/Logo";
+import MenuPrincipal from "@/components/MenuPrincipal";
 import { ehAdmin } from "@/lib/usuarios";
 
 export default async function PainelLayout({ children }: { children: React.ReactNode }) {
@@ -7,19 +9,19 @@ export default async function PainelLayout({ children }: { children: React.React
 
   return (
     <>
-      <nav>
-        <Link href="/lancamentos">Lançamentos</Link>
-        <Link href="/recorrencias">Recorrências</Link>
-        <Link href="/dashboard">Dashboard</Link>
-        <Link href="/analise">Análise</Link>
-        <Link href="/contas">Contas</Link>
-        <Link href="/categorias">Categorias</Link>
-        <Link href="/perfil">Meu perfil</Link>
-        {admin && <Link href="/usuarios">Usuários</Link>}
-        <form action={sair} className="sair">
-          <button type="submit">Sair</button>
-        </form>
-      </nav>
+      <header className="topo">
+        <div className="topo-linha">
+          <Link href="/lancamentos" className="topo-marca" aria-label="Caderneta da Cláudia: início">
+            <Logo tamanho={30} />
+          </Link>
+          <form action={sair} className="sair">
+            <button type="submit">Sair</button>
+          </form>
+        </div>
+        <nav aria-label="Menu principal">
+          <MenuPrincipal admin={admin} />
+        </nav>
+      </header>
       {children}
     </>
   );

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import SeletorMes from "@/components/SeletorMes";
 import {
   alertasDeQualidade,
@@ -6,6 +7,8 @@ import {
   resolverMes,
   resumoDoMes,
   saidasPorCategoria,
+  previstosVencidos,
+  resumoPrevistoDoMes,
   saldosDasContas,
 } from "@/lib/lancamentos";
 
@@ -26,18 +29,27 @@ export default async function Dashboard({
     );
   }
 
-  const [meses, resumo, categorias, contas, alertas] = await Promise.all([
+  const [meses, resumo, categorias, contas, alertas, previsto, vencidos] = await Promise.all([
     listarMeses(),
     resumoDoMes(mes),
     saidasPorCategoria(mes),
     saldosDasContas(),
     alertasDeQualidade(),
+    resumoPrevistoDoMes(mes),
+    previstosVencidos(),
   ]);
 
   return (
     <main>
       <h1>Dashboard</h1>
       <SeletorMes rota="/dashboard" meses={meses} atual={mes} />
+
+      {vencidos.quantidade > 0 && (
+        <p className="erro" role="alert">
+          Você tem {vencidos.quantidade} lançamento(s) previsto(s) vencido(s), ainda sem confirmar.{" "}
+          <Link href={`/lancamentos?mes=${vencidos.mesMaisAntigo}`}>Ver previstos</Link>
+        </p>
+      )}
 
       <div className="resumo">
         <div>
@@ -52,6 +64,15 @@ export default async function Dashboard({
           <span>Saldo do mês</span>
           <span>{formatarValor(resumo.saldo)}</span>
         </div>
+        {previsto.quantidade > 0 && (
+          <div className="previsto-resumo">
+            <span>Previsto no mês (não incluído)</span>
+            <span>
+              {previsto.entradas > 0 && `+ ${formatarValor(previsto.entradas)} `}
+              {previsto.saidas > 0 && `− ${formatarValor(previsto.saidas)}`}
+            </span>
+          </div>
+        )}
       </div>
 
       <h2>Saídas por categoria</h2>
@@ -67,6 +88,7 @@ export default async function Dashboard({
       </div>
 
       <h2>Saldo atual das contas</h2>
+      <p className="nota">Não inclui lançamentos previstos.</p>
       <div className="resumo">
         {contas.map((c) => (
           <div key={c.conta}>

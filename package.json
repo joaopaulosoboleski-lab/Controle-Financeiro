@@ -9,7 +9,10 @@
     "lint": "eslint .",
     "test": "vitest run",
     "db:start": "scripts\\iniciar-banco.cmd",
-    "db:stop": "scripts\\parar-banco.cmd"
+    "db:stop": "scripts\\parar-banco.cmd",
+    "test:db": "node testes/db/criar-banco.mjs",
+    "test:integracao": "vitest run -c vitest.integracao.config.mts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "exceljs": "^4.4.0",
@@ -21,13 +24,16 @@
     "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.0",
     "@types/node": "^22.0.0",
     "@types/pdfkit": "^0.17.7",
     "@types/pg": "^8.23.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "drizzle-orm": "^0.45.4",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.4.5",
+    "postgres": "^4.1.1",
     "typescript": "^5.6.0",
     "vitest": "^5.1.0"
   }

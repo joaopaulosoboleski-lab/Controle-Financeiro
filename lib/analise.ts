@@ -146,7 +146,7 @@ export const NOMES_DIAS_LONGOS = ["Segunda-feira", "Terça-feira", "Quarta-feira
 async function limitesDoUsuario(usuarioId: number) {
   const { rows } = await pool.query<{ de: string | null; ate: string | null }>(
     `SELECT to_char(MIN(data_lancamento), 'YYYY-MM-DD') AS de, to_char(MAX(data_lancamento), 'YYYY-MM-DD') AS ate
-     FROM lancamentos WHERE usuario_id = $1`,
+     FROM lancamentos WHERE usuario_id = $1 AND NOT previsto`,
     [usuarioId],
   );
   return rows[0].de && rows[0].ate ? { de: rows[0].de, ate: rows[0].ate } : null;
@@ -297,7 +297,7 @@ export async function carregarAnalise(dePedido?: string, atePedido?: string): Pr
        FROM lancamentos l
        JOIN categorias cat ON cat.categoria_id = l.categoria_id AND cat.usuario_id = l.usuario_id
        JOIN contas c ON c.conta_id = l.conta_id AND c.usuario_id = l.usuario_id
-       WHERE l.usuario_id = $1 AND l.data_lancamento BETWEEN $2::date AND $3::date
+       WHERE l.usuario_id = $1 AND NOT l.previsto AND l.data_lancamento BETWEEN $2::date AND $3::date
        ORDER BY l.data_lancamento, l.lancamento_id`,
       [usuarioId, de, ate],
     ),

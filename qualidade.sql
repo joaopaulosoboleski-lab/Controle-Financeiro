@@ -8,6 +8,7 @@ WITH base AS (
          ) AS repeticoes
   FROM lancamentos l
   JOIN categorias cat ON cat.categoria_id = l.categoria_id AND cat.usuario_id = l.usuario_id
+  WHERE NOT l.previsto -- previsto ainda pode mudar (coluna criada no schema.sql / previstos.sql)
 )
 SELECT lancamento_id, usuario_id, 'sem descricao' AS motivo
 FROM base WHERE descricao IS NULL OR btrim(descricao) = ''

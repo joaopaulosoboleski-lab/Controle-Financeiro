@@ -66,8 +66,11 @@ body {
   color: var(--texto);
   max-width: 640px;
   margin: 0 auto;
-  padding: 1rem;
+  /* App instalado ocupa a tela toda: respeita recorte da câmera e barra de gestos. */
+  padding: 0 max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom))
+    max(1rem, env(safe-area-inset-left));
   line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
 }
 
 h1 {
@@ -76,24 +79,6 @@ h1 {
 
 a {
   color: var(--destaque);
-}
-
-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1.25rem;
-  padding-bottom: 0.75rem;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid var(--borda);
-}
-
-nav a {
-  font-weight: 600;
-  text-decoration: none;
-}
-
-nav a:hover {
-  text-decoration: underline;
 }
 
 ul.lista {
@@ -226,14 +211,6 @@ button {
 .card.usuario span {
   color: var(--suave);
   font-size: 0.875rem;
-}
-
-nav .sair {
-  margin-left: auto;
-}
-
-nav .sair button {
-  padding: 0.15rem 0.6rem;
 }
 
 select {
@@ -400,5 +377,305 @@ input[type="color"] {
 @media (max-width: 360px) {
   .leitor-botoes {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Lançamento previsto ---------- */
+
+/* Borda tracejada + selo em texto: a cor nunca é o único sinal. */
+.card.previsto a:first-child {
+  border-style: dashed;
+  background: transparent;
+}
+
+.card.vencido a:first-child {
+  border-color: var(--saida);
+  border-left-color: var(--saida);
+}
+
+.selo {
+  display: inline-block;
+  margin-right: 0.4rem;
+  padding: 0.05rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-style: normal;
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+  color: var(--suave);
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+}
+
+.card.vencido .selo,
+h1 .selo {
+  color: var(--saida);
+  border-color: var(--saida);
+}
+
+.card.previsto:not(.vencido) .selo {
+  color: var(--destaque);
+  border-color: var(--destaque);
+}
+
+.card.previsto {
+  display: grid;
+  gap: 0.35rem;
+}
+
+/* Botão "Confirmar": alvo de toque de 44px. */
+.botao-confirmar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--fundo);
+  background: var(--destaque);
+  border-radius: 6px;
+}
+
+/* ".card a" estiliza o link do card; o botão Confirmar também é um link dentro do card e não pode herdar isso. */
+.card a.botao-confirmar {
+  display: inline-flex;
+  justify-self: end;
+  padding: 0 1rem;
+  color: var(--fundo);
+  background: var(--destaque);
+  border: 0;
+  border-radius: 6px;
+}
+
+.card a.botao-confirmar:hover {
+  filter: brightness(1.1);
+}
+
+.resumo .previsto-resumo {
+  color: var(--suave);
+  border-style: dashed;
+}
+
+.nota {
+  margin-top: -0.25rem;
+  font-size: 0.875rem;
+  color: var(--suave);
+}
+
+.formulario label.opcao span {
+  display: grid;
+}
+
+/* ---------- Logo ---------- */
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--texto);
+  text-decoration: none;
+}
+
+.logo svg {
+  flex: none;
+}
+
+.logo-nome {
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.logo-nome span {
+  font-weight: 400;
+  color: var(--destaque);
+}
+
+.logo-grande .logo-nome {
+  font-size: 1.6rem;
+}
+
+.titulo-logo {
+  margin: 0 0 0.5rem;
+  font-size: inherit;
+}
+
+/* Login e página inicial: centralizados, com a logo em destaque. */
+main.entrada {
+  display: grid;
+  justify-items: start;
+  gap: 0.75rem;
+  padding-top: max(2.5rem, env(safe-area-inset-top));
+}
+
+main.entrada h1 {
+  margin: 0.5rem 0 0;
+}
+
+/* O container alinha à esquerda (start); sem isto o formulário encolheria até o tamanho dos campos. */
+main.entrada .formulario {
+  width: 100%;
+}
+
+/* ---------- Topo e menu ---------- */
+
+/* Fixo no topo ao rolar: no app instalado é o único caminho entre as telas. */
+.topo {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  margin: 0 calc(-1 * max(1rem, env(safe-area-inset-left))) 1.25rem;
+  padding: max(0.6rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) 0
+    max(1rem, env(safe-area-inset-left));
+  background: var(--fundo);
+  border-bottom: 1px solid var(--borda);
+}
+
+.topo-linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.topo-marca {
+  text-decoration: none;
+}
+
+.topo .sair button {
+  min-height: 36px;
+  padding: 0.15rem 0.8rem;
+}
+
+/* Uma linha só, rolando de lado no celular (em vez de quebrar em três linhas). */
+.menu-itens {
+  display: flex;
+  gap: 0.25rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  /* Esmaece as pontas para indicar que dá para rolar. */
+  mask-image: linear-gradient(to right, transparent 0, #000 0.75rem, #000 calc(100% - 1.5rem), transparent 100%);
+}
+
+.menu-itens::-webkit-scrollbar {
+  display: none;
+}
+
+.menu-itens a {
+  flex: none;
+  scroll-snap-align: start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 0.7rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--suave);
+  border-bottom: 3px solid transparent;
+}
+
+.menu-itens a:hover {
+  color: var(--texto);
+}
+
+/* Página atual: cor + sublinhado grosso (não depende só da cor). */
+.menu-itens a[aria-current="page"] {
+  color: var(--destaque);
+  border-bottom-color: var(--destaque);
+}
+
+.menu-itens a:focus-visible,
+.topo-marca:focus-visible {
+  outline: 2px solid var(--destaque);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---------- Responsivo ---------- */
+
+/* Seletor de meses: uma faixa que rola de lado, em vez de empilhar dezenas de meses. */
+.meses {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+  scrollbar-width: thin;
+}
+
+.meses > * {
+  flex: none;
+  white-space: nowrap;
+}
+
+/* Textos longos não estouram os cards. */
+.card a,
+.card strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.formulario {
+  max-width: min(100%, 420px);
+}
+
+.formulario input,
+.formulario select {
+  width: 100%;
+}
+
+/* Telas de toque: alvos de pelo menos 44px e campos com 16px (o iPhone não dá zoom ao focar). */
+@media (pointer: coarse) {
+  input,
+  select,
+  button {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  input[type="checkbox"] {
+    min-height: 0;
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .meses a,
+  .meses strong {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}
+
+/* Celular estreito: a logo mostra só "Caderneta". */
+@media (max-width: 380px) {
+  .topo .logo-nome span {
+    display: none;
+  }
+}
+
+/* Computador: mais largura e listas em duas colunas. */
+@media (min-width: 900px) {
+  body {
+    max-width: 960px;
+  }
+
+  ul.lista {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+  }
+
+  .menu-itens {
+    mask-image: none;
+    flex-wrap: wrap;
+  }
+}
+
+/* Impressão: sem menu. */
+@media print {
+  .topo {
+    display: none;
   }
 }

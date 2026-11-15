@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Sem internet · Caderneta da Cláudia</title>
+    <meta name="theme-color" content="#2f6f5e" />
+    <style>
+      /* Página estática, servida pelo service worker quando não há conexão (mesmas cores do app). */
+      :root {
+        --fundo: #f6f7f9;
+        --superficie: #ffffff;
+        --texto: #1f2933;
+        --suave: #667085;
+        --borda: #e2e5ea;
+        --destaque: #2f6f5e;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --fundo: #14181c;
+          --superficie: #1d2329;
+          --texto: #e8ecef;
+          --suave: #9aa5b1;
+          --borda: #2c353d;
+          --destaque: #6fc2a8;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
+        font-family: system-ui, sans-serif;
+        line-height: 1.5;
+        background: var(--fundo);
+        color: var(--texto);
+      }
+      main {
+        max-width: 360px;
+        padding: 1.5rem;
+        text-align: center;
+        background: var(--superficie);
+        border: 1px solid var(--borda);
+        border-radius: 12px;
+      }
+      svg {
+        display: block;
+        margin: 0 auto;
+      }
+      p {
+        color: var(--suave);
+      }
+      button {
+        min-height: 44px;
+        padding: 0 1.25rem;
+        font: inherit;
+        font-weight: 600;
+        color: var(--fundo);
+        background: var(--destaque);
+        border: 0;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <!-- Ícone embutido: sem internet, a página não pode depender de nenhum outro arquivo. -->
+      <svg width="72" height="72" viewBox="0 0 100 100" aria-hidden="true">
+        <rect width="100" height="100" rx="22" fill="#2f6f5e" />
+        <rect x="24" y="16" width="52" height="68" rx="6" fill="#ffffff" />
+        <rect x="24" y="16" width="10" height="68" rx="4" fill="#d7e8e2" />
+        <g fill="#2f6f5e">
+          <circle cx="29" cy="28" r="2.2" /><circle cx="29" cy="40" r="2.2" /><circle cx="29" cy="52" r="2.2" />
+          <circle cx="29" cy="64" r="2.2" /><circle cx="29" cy="76" r="2.2" />
+        </g>
+        <text x="56" y="61" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="30" fill="#2f6f5e">R$</text>
+      </svg>
+      <h1>Você está sem internet</h1>
+      <p>A Caderneta precisa de conexão para mostrar e salvar seus lançamentos. Nada foi perdido.</p>
+      <button type="button" onclick="location.reload()">Tentar de novo</button>
+    </main>
+    <script>
+      // Volta sozinha quando a conexão retornar.
+      addEventListener("online", () => location.reload());
+    </script>
+  </body>
+</html>

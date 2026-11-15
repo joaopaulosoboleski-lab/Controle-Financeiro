@@ -26,11 +26,14 @@ export default async function ListaContas() {
                   <span>{formatarValor(c.saldoAtual)}</span>
                   <small>
                     {TIPOS_CONTA[c.tipo]} · saldo inicial {formatarValor(c.saldoInicial)} · {c.lancamentos} lançamento(s)
+                    {c.previstoLiquido !== 0 &&
+                      ` · previsto: ${c.previstoLiquido > 0 ? "+" : "−"} ${formatarValor(Math.abs(c.previstoLiquido))} (não incluído)`}
                   </small>
                 </Link>
               </li>
             ))}
           </ul>
+          <p className="nota">O saldo não inclui lançamentos previstos.</p>
           <div className="resumo">
             <div className="saldo">
               <span>Total nas contas</span>

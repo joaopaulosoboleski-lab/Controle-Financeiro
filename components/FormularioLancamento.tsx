@@ -13,6 +13,8 @@ type FormularioLancamentoProps = {
   iniciais: ValoresFormulario;
   id?: number;
   textoBotao: string;
+  // Só na criação: um lançamento realizado nunca vira previsto depois.
+  permitirPrevisto?: boolean;
 };
 
 function BotaoEnviar({ texto }: { texto: string }) {
@@ -31,6 +33,7 @@ export default function FormularioLancamento({
   iniciais,
   id,
   textoBotao,
+  permitirPrevisto = false,
 }: FormularioLancamentoProps) {
   const [estado, formAction] = useActionState(action, {} as EstadoFormulario);
   // Depois de um erro, mantém o que a pessoa digitou (o React limpa o formulário após a action).
@@ -68,6 +71,16 @@ export default function FormularioLancamento({
         Data
         <input type="date" name="data" defaultValue={v.data} required />
       </label>
+
+      {permitirPrevisto && (
+        <label className="opcao">
+          <input type="checkbox" name="previsto" defaultChecked={v.previsto} />
+          <span>
+            Ainda não aconteceu (previsto)
+            <small>Não entra no saldo até você confirmar.</small>
+          </span>
+        </label>
+      )}
 
       <label>
         Conta

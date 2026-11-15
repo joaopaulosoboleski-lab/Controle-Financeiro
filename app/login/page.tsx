@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Logo from "@/components/Logo";
 import { lerUsuarioId } from "@/lib/sessao";
 import { entrar } from "./actions";
 
@@ -11,7 +12,8 @@ export default async function Login({
   const { erro } = await searchParams;
 
   return (
-    <main>
+    <main className="entrada">
+      <Logo tamanho={56} className="logo-grande" />
       <h1>Entrar</h1>
       {erro === "bloqueado" ? (
         <p className="erro">Muitas tentativas erradas. Espere 15 minutos e tente de novo.</p>

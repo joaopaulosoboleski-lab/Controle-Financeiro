@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dataValida, lerDinheiro, validar, type ValoresFormulario } from "@/lib/formulario";
+import { dataValida, lerDinheiro, validar, validarConfirmacao, type ValoresFormulario } from "@/lib/formulario";
 
 describe("lerDinheiro", () => {
   it.each([
@@ -72,6 +72,27 @@ describe("validar (lançamento)", () => {
     [{ categoriaId: "1.5" }, /categoria/],
   ])("recusa %j", (troca, mensagem) => {
     const r = validar({ ...base, ...troca });
+    expect("erro" in r && r.erro).toMatch(mensagem);
+  });
+});
+
+describe("validarConfirmacao (lançamento previsto)", () => {
+  const base = { valor: "280,00", data: "2026-11-12", contaId: "3" };
+
+  it("aceita valor, data e conta ajustados", () => {
+    expect(validarConfirmacao(base)).toEqual({ dados: { valor: "280.00", data: "2026-11-12", contaId: 3 } });
+  });
+
+  it.each<[Partial<typeof base>, RegExp]>([
+    [{ valor: "0" }, /maior que zero/],
+    [{ valor: "-10" }, /maior que zero/],
+    [{ valor: "" }, /valor válido/],
+    [{ data: "" }, /data/],
+    [{ data: "2026-02-30" }, /data/],
+    [{ contaId: "" }, /conta/],
+    [{ contaId: "abc" }, /conta/],
+  ])("recusa %j", (troca, mensagem) => {
+    const r = validarConfirmacao({ ...base, ...troca });
     expect("erro" in r && r.erro).toMatch(mensagem);
   });
 });

@@ -1,5 +1,5 @@
 -- schema.sql — Caderneta da Claudia (PostgreSQL 14+)
--- Ordem de execucao: schema.sql -> dados.sql -> ajustar_sequencias.sql -> qualidade.sql -> admin.sql -> seguranca.sql
+-- Ordem de execucao: schema.sql -> dados.sql -> ajustar_sequencias.sql -> qualidade.sql -> admin.sql -> seguranca.sql -> previstos.sql
 -- (supabase.sql por ultimo, so no Supabase)
 
 -- R1: acesso por pessoa. E-mail unico, senha guardada como hash.
@@ -71,6 +71,8 @@ CREATE TABLE lancamentos (
   valor           NUMERIC(10,2) NOT NULL CHECK (valor > 0),
   data_lancamento DATE NOT NULL,
   descricao       TEXT,
+  -- Previsto: ainda não aconteceu; fica fora do saldo e dos totais até ser confirmado (ver previstos.sql).
+  previsto        BOOLEAN NOT NULL DEFAULT FALSE,
   FOREIGN KEY (conta_id, usuario_id)     REFERENCES contas (conta_id, usuario_id),
   FOREIGN KEY (categoria_id, usuario_id) REFERENCES categorias (categoria_id, usuario_id)
 );
@@ -84,8 +86,10 @@ CREATE INDEX idx_lancamentos_usuario_categoria_data ON lancamentos (usuario_id, 
 CREATE INDEX idx_lancamentos_conta ON lancamentos (conta_id);
 -- origem por recorrencia (so os que tem origem)
 CREATE INDEX idx_lancamentos_recorrencia ON lancamentos (recorrencia_id) WHERE recorrencia_id IS NOT NULL;
+-- previstos de uma pessoa (poucos: índice parcial)
+CREATE INDEX idx_lancamentos_previstos ON lancamentos (usuario_id, data_lancamento) WHERE previsto;
 
--- R5: saldo calculado na hora = saldo inicial + entradas - saidas.
+-- R5: saldo calculado na hora = saldo inicial + entradas - saidas (so lancamentos realizados).
 -- Calcular evita um numero duplicado que poderia divergir dos lancamentos.
 CREATE VIEW saldo_contas AS
 SELECT c.conta_id,
@@ -94,7 +98,7 @@ SELECT c.conta_id,
        c.saldo_inicial
          + COALESCE(SUM(CASE WHEN l.tipo = 'entrada' THEN l.valor ELSE -l.valor END), 0) AS saldo_atual
 FROM contas c
-LEFT JOIN lancamentos l ON l.conta_id = c.conta_id
+LEFT JOIN lancamentos l ON l.conta_id = c.conta_id AND NOT l.previsto
 GROUP BY c.conta_id, c.usuario_id, c.nome, c.saldo_inicial;
 
 -- R10: NUMERIC(10,2) e exato (decimal); FLOAT acumularia erro de arredondamento.

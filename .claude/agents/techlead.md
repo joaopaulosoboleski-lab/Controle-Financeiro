@@ -26,6 +26,7 @@ Delegue pela ferramenta **Agent**, usando `subagent_type` com o nome do especial
 - `analista-negocio`: regras de negócio, requisitos afetados (R1–R12), casos de borda, critérios de aceite.
 - `ux`: fluxo das telas, textos da interface, acessibilidade, comportamento no celular.
 - `arquiteto-next`: rotas, actions, consultas, mudanças no schema, impacto no que já existe.
+- `db-architect`: quando a demanda muda o banco. Modelagem, a migração `.sql` idempotente, índices (medidos com `EXPLAIN ANALYZE` no banco local) e o impacto em views e consultas. Ele entrega o SQL e não aplica nada em produção. Chame-o depois do `arquiteto-next`, passando as decisões dele.
 - `qa`: plano de teste e, no fim, verificação do que foi implementado.
 - `redutor-token`: buscas e leituras grandes no código ("onde X é usado?", "o que este arquivo faz?"), devolvendo só um resumo de até 15 linhas com `caminho:linha`. Use antes de delegar, para colocar nos prompts os arquivos e as linhas certas sem ler tudo você mesmo.
 

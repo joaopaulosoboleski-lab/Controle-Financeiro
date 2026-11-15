@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import BotaoExcluir from "@/components/BotaoExcluir";
 import FormularioLancamento from "@/components/FormularioLancamento";
@@ -25,6 +26,12 @@ export default async function EditarLancamento({
   return (
     <main>
       <h1>Editar lançamento</h1>
+      {lancamento.previsto && (
+        <p>
+          Este lançamento é <strong>previsto</strong> e continua fora do saldo depois de editado. Para que ele passe a
+          contar, <Link href={`/lancamentos/${lancamento.id}/confirmar`}>confirme o lançamento</Link>.
+        </p>
+      )}
       <FormularioLancamento
         action={atualizarLancamento}
         contas={contas}

@@ -15,6 +15,7 @@ export type Conta = {
   saldoAtual: number; // R5: calculado pela view saldo_contas
   lancamentos: number;
   recorrencias: number;
+  previstoLiquido: number; // entradas − saídas previstas, NÃO incluídas no saldo atual
 };
 
 type LinhaConta = {
@@ -26,13 +27,16 @@ type LinhaConta = {
   saldo_atual: string;
   lancamentos: number;
   recorrencias: number;
+  previsto_liquido: string;
 };
 
 const SELECT_CONTA = `
   SELECT c.conta_id AS id, c.nome, c.tipo, c.saldo_inicial::text AS saldo_inicial,
          to_char(c.data_abertura, 'YYYY-MM-DD') AS data_abertura, s.saldo_atual::text AS saldo_atual,
          (SELECT COUNT(*)::int FROM lancamentos l WHERE l.conta_id = c.conta_id AND l.usuario_id = c.usuario_id) AS lancamentos,
-         (SELECT COUNT(*)::int FROM recorrencias r WHERE r.conta_id = c.conta_id AND r.usuario_id = c.usuario_id) AS recorrencias
+         (SELECT COUNT(*)::int FROM recorrencias r WHERE r.conta_id = c.conta_id AND r.usuario_id = c.usuario_id) AS recorrencias,
+         (SELECT COALESCE(SUM(CASE WHEN l.tipo = 'entrada' THEN l.valor ELSE -l.valor END), 0)::text
+            FROM lancamentos l WHERE l.conta_id = c.conta_id AND l.usuario_id = c.usuario_id AND l.previsto) AS previsto_liquido
   FROM contas c
   JOIN saldo_contas s ON s.conta_id = c.conta_id
 `;
@@ -47,6 +51,7 @@ function paraConta(l: LinhaConta): Conta {
     saldoAtual: Number(l.saldo_atual),
     lancamentos: l.lancamentos,
     recorrencias: l.recorrencias,
+    previstoLiquido: Number(l.previsto_liquido),
   };
 }
 
@@ -180,6 +185,8 @@ export type RecorrenciaDoMes = Recorrencia & {
   dataLancada: string | null;
 };
 
+// Previsto nunca tem recorrencia_id (só nasce do formulário, e editar não muda a origem),
+// então a checagem de "já lançada no mês" abaixo e no INSERT das recorrências continua certa.
 // Recorrências vigentes no mês (início até o fim do mês; fim, se houver, a partir do 1º dia),
 // com o lançamento que já saiu delas no mês, se existir.
 export async function recorrenciasDoMes(mes: string): Promise<RecorrenciaDoMes[]> {

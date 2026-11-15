@@ -23,6 +23,7 @@ export default async function NovoLancamento() {
         categorias={categorias}
         iniciais={{ descricao: "", valor: "", tipo: "saida", data: hoje, contaId: "", categoriaId: "" }}
         textoBotao="Salvar"
+        permitirPrevisto
       />
     </main>
   );

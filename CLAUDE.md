@@ -15,17 +15,20 @@ npm run dev                 # servidor em http://localhost:3000 (Turbopack)
 npm run build               # build de produção (também faz a checagem de tipos)
 npx tsc --noEmit -p .       # checagem de tipos rápida
 npm test                    # testes (Vitest) das funções puras em testes/*.test.ts
+npm run test:db             # recria o banco de TESTE (caderneta_teste) — exige DATABASE_URL_TEST
+npm run test:integracao     # regras do banco (Vitest + Drizzle) no banco de teste
+npm run test:e2e            # Playwright (Chrome instalado): build, sobe em :3100 e testa no banco de teste
 npm run lint                # ESLint (eslint-config-next + typescript)
 npm run db:start            # liga o PostgreSQL local (porta 5434 — a 5433 costuma estar com o Docker —, dados em %USERPROFILE%\caderneta-pgdata)
 npm run db:stop
 node --env-file=.env.local scripts/definir-senha.mjs <email> <senha>   # define a senha de um usuário
 ```
 
-Os testes cobrem só funções puras (validação, estatística, datas): não acessam banco nem servidor. Validação nova vai para um arquivo sem banco (ex.: [lib/validacao-cadastros.ts](lib/validacao-cadastros.ts)) para poder ser testada.
+Testes de integração e e2e usam SÓ `DATABASE_URL_TEST` (ex.: `postgresql://postgres@127.0.0.1:5434/caderneta_teste`); `testes/db/conexao.ts` aborta se ela apontar para o mesmo banco do `DATABASE_URL`. Drizzle existe só em `testes/` — o app usa `pg`. Não rode integração e e2e juntos (limpam o mesmo banco). `NEXT_DIST_DIR` muda a pasta do build (permite um build paralelo ao do e2e). Os testes unitários cobrem só funções puras (validação, estatística, datas): não acessam banco nem servidor. Validação nova vai para um arquivo sem banco (ex.: [lib/validacao-cadastros.ts](lib/validacao-cadastros.ts)) para poder ser testada.
 
 ## Banco de dados
 
-- Scripts SQL na raiz, nesta ordem: `schema.sql` → `dados.sql` → `ajustar_sequencias.sql` → `qualidade.sql` → `admin.sql` (adiciona `usuarios.admin` e torna o usuário 1 admin; idempotente) → `seguranca.sql` (coluna `usuarios.sessao_versao`, índice único em `lower(email)` e tabela `tentativas_login`; idempotente) → `supabase.sql` (este só no Supabase: liga RLS sem políticas e revoga `anon`/`authenticated`; o app usa o usuário dono, que ignora o RLS).
+- Scripts SQL na raiz, nesta ordem: `schema.sql` → `dados.sql` → `ajustar_sequencias.sql` → `qualidade.sql` → `admin.sql` (adiciona `usuarios.admin` e torna o usuário 1 admin; idempotente) → `seguranca.sql` (coluna `usuarios.sessao_versao`, índice único em `lower(email)` e tabela `tentativas_login`; idempotente) → `previstos.sql` (coluna `lancamentos.previsto` e views refeitas; idempotente) → `supabase.sql` (este só no Supabase: liga RLS sem políticas e revoga `anon`/`authenticated`; o app usa o usuário dono, que ignora o RLS).
 - Os `senha_hash` de `dados.sql` são fictícios: para entrar com um usuário de exemplo é preciso rodar `definir-senha.mjs`.
 - `DATABASE_URL` em `.env.local` decide o banco. **Hoje aponta para o Supabase (dados reais)**, não para o local. Escrever nele afeta o ambiente de verdade.
 - Supabase usa o *transaction pooler* (Supavisor): as conexões do servidor são compartilhadas entre clientes. **Nunca rode `SET` de sessão** (ex.: `SET default_transaction_read_only = on`): ele fica preso na conexão do pooler e quebra o app para todos. Para leituras seguras use `BEGIN READ ONLY … ROLLBACK`.
@@ -57,6 +60,10 @@ Os testes cobrem só funções puras (validação, estatística, datas): não ac
 **Confirmação de recorrências (R6/R7).** `/recorrencias/confirmar?mes=YYYY-MM` lista as recorrências vigentes no mês (início antes do fim do mês; fim, se houver, a partir do dia 1) e o lançamento que já saiu de cada uma. Confirmar faz um `INSERT ... SELECT` com `recorrencia_id`, tipo vindo da categoria e `NOT EXISTS` no mês, dentro de uma transação com `pg_advisory_xact_lock` por usuário (cliques simultâneos não duplicam). A data confirmada precisa estar dentro do mês, porque é assim que se sabe se o mês já foi lançado. A FK `lancamentos.recorrencia_id` é simples (não composta): o dono é conferido no `WHERE r.usuario_id = $1`.
 
 **Entrada por foto (`/lancamentos/comprovante`).** OCR no próprio celular com `tesseract.js` (português; núcleo e idioma baixados da CDN jsDelivr no 1º uso e guardados em cache). [components/LeitorComprovante.tsx](components/LeitorComprovante.tsx) abre a câmera (`capture="environment"`) ou a galeria, reduz a foto e passa para cinza antes de ler. [lib/ocr-entrada.ts](lib/ocr-entrada.ts) é puro e testado: reconhece PIX/TED, holerite e recibo/NFS-e e extrai valor (em centavos), data, descrição e categoria sugerida. A foto não é enviada nem guardada (anexos estão fora do escopo); o resultado só preenche o `FormularioLancamento`, e quem salva é a action `criarLancamento` de sempre.
+
+**Lançamento previsto.** `lancamentos.previsto = true`: ainda não aconteceu, fica FORA de saldo (`saldo_contas`), totais, dashboard, Análise/Excel/PDF e alertas (`lancamentos_suspeitos`); aparece à parte (seção "Previstos", "Previsto no mês", previsto por conta, aviso de vencidos). Só nasce previsto na criação (checkbox); `confirmarLancamento` vira realizado no mesmo registro (`UPDATE ... AND usuario_id = $2 AND previsto`), podendo ajustar valor, data e conta. Toda consulta de total real precisa de `NOT previsto`. Recriar uma view apaga `security_invoker`: rode `supabase.sql` de novo depois.
+
+**PWA.** `app/manifest.ts`, ícones em `public/icones/` + `app/icon.png`/`app/apple-icon.png`, `viewport` com `themeColor` e `viewportFit: cover` em `app/layout.tsx`. `public/sw.js` (registrado só em produção por `components/RegistrarServiceWorker.tsx`) guarda apenas `public/offline.html` e mostra essa página quando a navegação falha — nunca guarda páginas nem dados. Ao mudar `sw.js`/`offline.html`, suba a versão em `CACHE`. Menu em `components/MenuPrincipal.tsx` (faixa rolável, `aria-current`), logo em `components/Logo.tsx` (também `public/logo.svg`).
 
 **Formulários cliente** em `components/` usam `useActionState` + `useFormStatus` e recebem a action por prop ou importam de `actions.ts`.
 

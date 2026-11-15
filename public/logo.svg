@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="120" viewBox="0 0 520 120" role="img" aria-label="Caderneta da Cláudia">
+  <!-- Logo da Caderneta da Cláudia (versão em arquivo, para documentos e redes). -->
+  <g transform="translate(10 10)">
+    <rect width="100" height="100" rx="22" fill="#2f6f5e"/>
+    <rect x="24" y="16" width="52" height="68" rx="6" fill="#ffffff"/>
+    <rect x="24" y="16" width="10" height="68" rx="4" fill="#d7e8e2"/>
+    <g fill="#2f6f5e"><circle cx="29" cy="28" r="2.2"/><circle cx="29" cy="40" r="2.2"/><circle cx="29" cy="52" r="2.2"/><circle cx="29" cy="64" r="2.2"/><circle cx="29" cy="76" r="2.2"/></g>
+    <text x="56" y="61" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="30" fill="#2f6f5e">R$</text>
+  </g>
+  <text x="130" y="68" font-family="system-ui, Segoe UI, Arial, sans-serif" font-weight="700" font-size="44" fill="#1f2933">Caderneta</text>
+  <text x="352" y="68" font-family="system-ui, Segoe UI, Arial, sans-serif" font-weight="400" font-size="44" fill="#2f6f5e">da Cláudia</text>
+  <text x="132" y="98" font-family="system-ui, Segoe UI, Arial, sans-serif" font-size="18" fill="#667085">controle financeiro da família</text>
+</svg>

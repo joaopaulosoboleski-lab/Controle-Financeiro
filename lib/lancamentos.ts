@@ -15,6 +15,9 @@ export type Lancamento = {
   // R7: recorrência que originou o lançamento (null = avulso).
   recorrenciaId: number | null;
   recorrencia: string | null;
+  // Previsto: ainda não aconteceu; fica fora do saldo e dos totais até ser confirmado.
+  previsto: boolean;
+  vencido: boolean; // previsto com data anterior a hoje (fuso do Brasil)
 };
 
 export type Resumo = { entradas: number; saidas: number; saldo: number };
@@ -33,13 +36,19 @@ type LinhaLancamento = {
   conta_id: number;
   recorrencia_id: number | null;
   recorrencia: string | null;
+  previsto: boolean;
+  vencido: boolean;
 };
+
+// "Hoje" no fuso do Brasil, calculado no banco (sem SET TIME ZONE: o pooler é compartilhado).
+const HOJE_SQL = "(now() AT TIME ZONE 'America/Sao_Paulo')::date";
 
 const SELECT_LANCAMENTO = `
   SELECT l.lancamento_id AS id, l.descricao, l.valor::text AS valor, l.tipo,
          to_char(l.data_lancamento, 'YYYY-MM-DD') AS data,
          cat.nome AS categoria, c.nome AS conta,
-         l.categoria_id, l.conta_id, r.recorrencia_id, r.descricao AS recorrencia
+         l.categoria_id, l.conta_id, r.recorrencia_id, r.descricao AS recorrencia,
+         l.previsto, (l.previsto AND l.data_lancamento < ${HOJE_SQL}) AS vencido
   FROM lancamentos l
   JOIN categorias cat ON cat.categoria_id = l.categoria_id AND cat.usuario_id = l.usuario_id
   JOIN contas c ON c.conta_id = l.conta_id AND c.usuario_id = l.usuario_id
@@ -59,34 +68,51 @@ function paraLancamento(linha: LinhaLancamento): Lancamento {
     contaId: linha.conta_id,
     recorrenciaId: linha.recorrencia_id,
     recorrencia: linha.recorrencia,
+    previsto: linha.previsto,
+    vencido: linha.vencido,
   };
 }
 
-// Meses (YYYY-MM) que tem lancamentos, do mais recente ao mais antigo.
-// cache(): resolverMes e a página pedem a lista no mesmo pedido; o banco é consultado uma vez.
-export const listarMeses = cache(async (): Promise<string[]> => {
-  const { rows } = await pool.query<{ mes: string }>(
-    `SELECT DISTINCT to_char(data_lancamento, 'YYYY-MM') AS mes
-     FROM lancamentos WHERE usuario_id = $1 ORDER BY mes DESC`,
-    [await exigirUsuario()],
-  );
-  return rows.map((r) => r.mes);
-});
-
-// Mes valido (YYYY-MM) ou o mais recente disponivel.
-export async function resolverMes(mes: string | undefined): Promise<string | undefined> {
-  const meses = await listarMeses();
-  return mes && meses.includes(mes) ? mes : meses[0];
+// Data de hoje (YYYY-MM-DD) no fuso do Brasil, no servidor.
+export function hojeEmSaoPaulo(): string {
+  return new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
 }
 
-export async function listarLancamentos(mes: string): Promise<Lancamento[]> {
+// Meses (YYYY-MM) com lançamentos (realizados ou previstos) e se cada um tem algum realizado.
+// cache(): resolverMes e a página pedem a lista no mesmo pedido; o banco é consultado uma vez.
+const mesesComLancamento = cache(async (): Promise<{ mes: string; temRealizado: boolean }[]> => {
+  const { rows } = await pool.query<{ mes: string; tem_realizado: boolean }>(
+    `SELECT to_char(data_lancamento, 'YYYY-MM') AS mes, bool_or(NOT previsto) AS tem_realizado
+     FROM lancamentos WHERE usuario_id = $1 GROUP BY 1 ORDER BY mes DESC`,
+    [await exigirUsuario()],
+  );
+  return rows.map((r) => ({ mes: r.mes, temRealizado: r.tem_realizado }));
+});
+
+// Meses do seletor, do mais recente ao mais antigo. Inclui mês só com previstos
+// (senão um previsto num mês futuro ficaria invisível).
+export async function listarMeses(): Promise<string[]> {
+  return (await mesesComLancamento()).map((m) => m.mes);
+}
+
+// Mês pedido, se existir; senão o mais recente com algo REALIZADO (não abre por padrão
+// um mês futuro que só tem previstos), e só sem nenhum realizado o mais recente de todos.
+export async function resolverMes(mes: string | undefined): Promise<string | undefined> {
+  const meses = await mesesComLancamento();
+  if (mes && meses.some((m) => m.mes === mes)) return mes;
+  return (meses.find((m) => m.temRealizado) ?? meses[0])?.mes;
+}
+
+// Realizados do mês (mais recentes primeiro) ou previstos do mês (por data, os mais próximos primeiro).
+export async function listarLancamentos(mes: string, { previsto = false } = {}): Promise<Lancamento[]> {
+  const ordem = previsto ? "l.data_lancamento ASC, l.lancamento_id ASC" : "l.data_lancamento DESC, l.lancamento_id DESC";
   const { rows } = await pool.query<LinhaLancamento>(
     `${SELECT_LANCAMENTO}
-     WHERE l.usuario_id = $1
+     WHERE l.usuario_id = $1 AND l.previsto = $3
        AND l.data_lancamento >= ($2 || '-01')::date
        AND l.data_lancamento < (($2 || '-01')::date + INTERVAL '1 month')
-     ORDER BY l.data_lancamento DESC, l.lancamento_id DESC`,
-    [await exigirUsuario(), mes],
+     ORDER BY ${ordem}`,
+    [await exigirUsuario(), mes, previsto],
   );
   return rows.map(paraLancamento);
 }
@@ -105,7 +131,7 @@ export async function resumoDoMes(mes: string): Promise<Resumo> {
     `SELECT COALESCE(SUM(valor) FILTER (WHERE tipo = 'entrada'), 0)::text AS entradas,
             COALESCE(SUM(valor) FILTER (WHERE tipo = 'saida'), 0)::text AS saidas
      FROM lancamentos
-     WHERE usuario_id = $1
+     WHERE usuario_id = $1 AND NOT previsto
        AND data_lancamento >= ($2 || '-01')::date
        AND data_lancamento < (($2 || '-01')::date + INTERVAL '1 month')`,
     [await exigirUsuario(), mes],
@@ -115,12 +141,39 @@ export async function resumoDoMes(mes: string): Promise<Resumo> {
   return { entradas, saidas, saldo: entradas - saidas };
 }
 
+export type ResumoPrevisto = { entradas: number; saidas: number; quantidade: number };
+
+// Previstos do mês, à parte dos totais reais.
+export async function resumoPrevistoDoMes(mes: string): Promise<ResumoPrevisto> {
+  const { rows } = await pool.query<{ entradas: string; saidas: string; quantidade: number }>(
+    `SELECT COALESCE(SUM(valor) FILTER (WHERE tipo = 'entrada'), 0)::text AS entradas,
+            COALESCE(SUM(valor) FILTER (WHERE tipo = 'saida'), 0)::text AS saidas,
+            COUNT(*)::int AS quantidade
+     FROM lancamentos
+     WHERE usuario_id = $1 AND previsto
+       AND data_lancamento >= ($2 || '-01')::date
+       AND data_lancamento < (($2 || '-01')::date + INTERVAL '1 month')`,
+    [await exigirUsuario(), mes],
+  );
+  return { entradas: Number(rows[0].entradas), saidas: Number(rows[0].saidas), quantidade: rows[0].quantidade };
+}
+
+// Previstos cuja data já passou e ainda não foram confirmados, com o mês do mais antigo (para o link).
+export async function previstosVencidos(): Promise<{ quantidade: number; mesMaisAntigo: string | null }> {
+  const { rows } = await pool.query<{ quantidade: number; mes: string | null }>(
+    `SELECT COUNT(*)::int AS quantidade, to_char(MIN(data_lancamento), 'YYYY-MM') AS mes
+     FROM lancamentos WHERE usuario_id = $1 AND previsto AND data_lancamento < ${HOJE_SQL}`,
+    [await exigirUsuario()],
+  );
+  return { quantidade: rows[0].quantidade, mesMaisAntigo: rows[0].mes };
+}
+
 export async function saidasPorCategoria(mes: string): Promise<TotalCategoria[]> {
   const { rows } = await pool.query<{ categoria: string; cor: string; total: string }>(
     `SELECT cat.nome AS categoria, cat.cor_hex AS cor, SUM(l.valor)::text AS total
      FROM lancamentos l
      JOIN categorias cat ON cat.categoria_id = l.categoria_id AND cat.usuario_id = l.usuario_id
-     WHERE l.usuario_id = $1 AND l.tipo = 'saida'
+     WHERE l.usuario_id = $1 AND l.tipo = 'saida' AND NOT l.previsto
        AND l.data_lancamento >= ($2 || '-01')::date
        AND l.data_lancamento < (($2 || '-01')::date + INTERVAL '1 month')
      GROUP BY cat.nome, cat.cor_hex
