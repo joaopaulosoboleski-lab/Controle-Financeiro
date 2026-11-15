@@ -1,10 +1,12 @@
-// Logo da Caderneta da Cláudia: a caderneta com "R$" (o mesmo desenho do ícone do app) + o nome.
+// Logo da Caderneta: a caderneta com "R$" (o mesmo desenho do ícone do app) + o nome.
+// Com `dono`, vira "Caderneta de <dono>" (a pessoa logada); sem ele (login, início), só "Caderneta".
 // O símbolo usa as cores fixas da marca, para ficar igual ao ícone instalado; o nome segue o tema.
 
 type LogoProps = {
   tamanho?: number; // altura do símbolo, em px
   comNome?: boolean;
   className?: string;
+  dono?: string;
 };
 
 export function SimboloCaderneta({ tamanho = 32 }: { tamanho?: number }) {
@@ -35,13 +37,13 @@ export function SimboloCaderneta({ tamanho = 32 }: { tamanho?: number }) {
   );
 }
 
-export default function Logo({ tamanho = 32, comNome = true, className }: LogoProps) {
+export default function Logo({ tamanho = 32, comNome = true, className, dono }: LogoProps) {
   return (
     <span className={["logo", className].filter(Boolean).join(" ")}>
       <SimboloCaderneta tamanho={tamanho} />
       {comNome && (
         <span className="logo-nome">
-          Caderneta <span>da Cláudia</span>
+          Caderneta{dono && <span> de {dono}</span>}
         </span>
       )}
     </span>

@@ -310,7 +310,7 @@ export async function gerarPdf(a: Analise, nomePessoa: string): Promise<Buffer> 
     size: "A4",
     margin: MARGEM,
     bufferPages: true,
-    info: { Title: "Análise dos lançamentos", Author: "Caderneta da Cláudia", Subject: `${nomePessoa}: ${a.de} a ${a.ate}` },
+    info: { Title: "Análise dos lançamentos", Author: `Caderneta de ${nomePessoa}`, Subject: `${nomePessoa}: ${a.de} a ${a.ate}` },
   });
   const partes: Buffer[] = [];
   doc.on("data", (p: Buffer) => partes.push(p));
@@ -442,7 +442,7 @@ export async function gerarPdf(a: Analise, nomePessoa: string): Promise<Buffer> 
     doc.page.margins.bottom = 0;
     const y = doc.page.height - MARGEM + 10;
     doc.font("Helvetica").fontSize(7.5).fillColor(C.suave);
-    doc.text(t(`Caderneta da Cláudia · ${formatarData(a.de)} a ${formatarData(a.ate)}`), MARGEM, y, { width: LARGURA / 2, lineBreak: false });
+    doc.text(t(`Caderneta de ${nomePessoa} · ${formatarData(a.de)} a ${formatarData(a.ate)}`), MARGEM, y, { width: LARGURA / 2, lineBreak: false });
     doc.text(`Página ${i + 1} de ${paginas.count}`, MARGEM + LARGURA / 2, y, { width: LARGURA / 2, align: "right", lineBreak: false });
   }
 

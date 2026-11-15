@@ -99,7 +99,7 @@ function escalaDeCor(ws: ExcelJS.Worksheet, ref: string) {
 
 export async function gerarExcel(a: Analise, nomePessoa: string): Promise<Buffer> {
   const wb = new ExcelJS.Workbook();
-  wb.creator = "Caderneta da Cláudia";
+  wb.creator = `Caderneta de ${nomePessoa}`;
   wb.created = new Date();
   const periodo = `${formatarData(a.de)} a ${formatarData(a.ate)}`;
   const n = (i: number) => i + 5; // primeira linha de dados das tabelas (título, subtítulo, vazio, cabeçalho)

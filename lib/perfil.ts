@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { pool } from "@/lib/db";
 import { exigirUsuario } from "@/lib/sessao";
 
@@ -55,3 +56,11 @@ export async function buscarPerfil(): Promise<Perfil | undefined> {
     ultimoLancamento: linha.ultimo,
   };
 }
+
+// Primeiro nome da pessoa logada, para a logo do topo ("Caderneta de Ana"). Uma consulta por pedido.
+export const primeiroNome = cache(async (): Promise<string> => {
+  const { rows } = await pool.query<{ nome: string }>("SELECT nome FROM usuarios WHERE usuario_id = $1", [
+    await exigirUsuario(),
+  ]);
+  return (rows[0]?.nome ?? "").trim().split(/\s+/)[0] ?? "";
+});
