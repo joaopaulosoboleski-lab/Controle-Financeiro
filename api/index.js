@@ -61,6 +61,11 @@ const app = express();
 app.disable("x-powered-by");
 app.use(express.json({ limit: "10kb" }));
 
+// Público (fica ANTES da checagem do token): só diz que o serviço está de pé, sem dado nenhum.
+app.get("/health", (req, res) => {
+  res.status(200).json({ servico: "caderneta-api", versao: "1.0.0" });
+});
+
 app.use((req, res, next) => {
   if (!tokenConfere(req.get("authorization"))) {
     return res.status(401).json({ erro: "Não autorizado." });
