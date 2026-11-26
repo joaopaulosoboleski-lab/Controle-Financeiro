@@ -1,0 +1,520 @@
+{
+  "info": {
+    "name": "Caderneta API",
+    "description": "Pedidos de teste da API em api/. Use com o ambiente 'Caderneta API (local)', que define baseUrl e token. As pastas 1 a 3 nunca gravam; a 4 grava em dados reais.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Saúde",
+      "item": [
+        {
+          "name": "Health (público) → 200",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [],
+            "description": "Esperado: 200. Não precisa de token. Diz só que o serviço está de pé."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Autenticação",
+      "item": [
+        {
+          "name": "Sem token → 401",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/lancamentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "lancamentos"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Esperado: 401. Espera: Falta o cabeçalho Authorization.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario_id\": 1,\n  \"conta_id\": 1,\n  \"categoria_id\": 1,\n  \"tipo\": \"saida\",\n  \"valor\": 12.34,\n  \"data_lancamento\": \"2026-11-26\",\n  \"descricao\": \"TESTE API - apagar\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Token errado → 401",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/lancamentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "lancamentos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "token-errado-de-proposito",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Esperado: 401. Espera: Token inválido.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario_id\": 1,\n  \"conta_id\": 1,\n  \"categoria_id\": 1,\n  \"tipo\": \"saida\",\n  \"valor\": 12.34,\n  \"data_lancamento\": \"2026-11-26\",\n  \"descricao\": \"TESTE API - apagar\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Bearer escrito duas vezes → 401",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/lancamentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "lancamentos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "Bearer {{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Esperado: 401. Espera: Use o formato Authorization: Bearer <token>.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario_id\": 1,\n  \"conta_id\": 1,\n  \"categoria_id\": 1,\n  \"tipo\": \"saida\",\n  \"valor\": 12.34,\n  \"data_lancamento\": \"2026-11-26\",\n  \"descricao\": \"TESTE API - apagar\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Validação (não grava)",
+      "item": [
+        {
+          "name": "Corpo vazio → 400",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/lancamentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "lancamentos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Esperado: 400. Espera: usuario_id inválido.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Tipo inválido → 400",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/lancamentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "lancamentos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Esperado: 400. Espera: tipo deve ser 'entrada' ou 'saida'.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario_id\": 1,\n  \"conta_id\": 1,\n  \"categoria_id\": 1,\n  \"tipo\": \"Saida\",\n  \"valor\": 12.34,\n  \"data_lancamento\": \"2026-11-26\",\n  \"descricao\": \"TESTE API - apagar\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Valor negativo → 400",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/lancamentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "lancamentos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Esperado: 400. Espera: valor deve ser um número maior que zero.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario_id\": 1,\n  \"conta_id\": 1,\n  \"categoria_id\": 1,\n  \"tipo\": \"saida\",\n  \"valor\": -10,\n  \"data_lancamento\": \"2026-11-26\",\n  \"descricao\": \"TESTE API - apagar\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Valor como texto → 400",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/lancamentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "lancamentos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Esperado: 400. Espera: valor deve ser um número maior que zero. (o número vai sem aspas)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario_id\": 1,\n  \"conta_id\": 1,\n  \"categoria_id\": 1,\n  \"tipo\": \"saida\",\n  \"valor\": \"12.34\",\n  \"data_lancamento\": \"2026-11-26\",\n  \"descricao\": \"TESTE API - apagar\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Três casas decimais → 400",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/lancamentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "lancamentos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Esperado: 400. Espera: valor aceita no máximo duas casas decimais.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario_id\": 1,\n  \"conta_id\": 1,\n  \"categoria_id\": 1,\n  \"tipo\": \"saida\",\n  \"valor\": 10.123,\n  \"data_lancamento\": \"2026-11-26\",\n  \"descricao\": \"TESTE API - apagar\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Data que não existe → 400",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/lancamentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "lancamentos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Esperado: 400. Espera: data_lancamento deve ser uma data AAAA-MM-DD válida.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario_id\": 1,\n  \"conta_id\": 1,\n  \"categoria_id\": 1,\n  \"tipo\": \"saida\",\n  \"valor\": 12.34,\n  \"data_lancamento\": \"2025-02-30\",\n  \"descricao\": \"TESTE API - apagar\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "JSON quebrado → 400",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/lancamentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "lancamentos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Esperado: 400. Espera: Corpo JSON inválido.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"valor\": 12,",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Rota inexistente → 404",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/lancamentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "lancamentos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "description": "Esperado: 404. GET não existe em /lancamentos: só POST. Espera: Rota não encontrada."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Gravação (DADOS REAIS)",
+      "item": [
+        {
+          "name": "Criar lançamento → 201",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/lancamentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "lancamentos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Esperado: 201. ATENÇÃO: grava no Supabase de produção. Ajuste usuario_id, conta_id e categoria_id (categoria de SAÍDA do mesmo usuário). Anote o lancamento_id e apague o teste depois. 400 com 'Conta inválida'/'Categoria inválida' = ids errados; 500 de permissão = SUPABASE_KEY não é a secret.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario_id\": 1,\n  \"conta_id\": 1,\n  \"categoria_id\": 1,\n  \"tipo\": \"saida\",\n  \"valor\": 12.34,\n  \"data_lancamento\": \"2026-11-26\",\n  \"descricao\": \"TESTE API - apagar\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

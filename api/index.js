@@ -23,11 +23,18 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
 
 const tokenEsperado = Buffer.from(API_TOKEN);
 
-function tokenConfere(cabecalho) {
-  const [esquema, token] = (cabecalho ?? "").split(" ");
-  if (esquema !== "Bearer" || !token) return false;
-  const recebido = Buffer.from(token);
-  return recebido.length === tokenEsperado.length && timingSafeEqual(recebido, tokenEsperado);
+// Devolve null se o token confere, ou o motivo da recusa (sem revelar nada do token esperado).
+function problemaNoToken(cabecalho) {
+  if (!cabecalho) return "Falta o cabeçalho Authorization: Bearer <token>.";
+  const partes = cabecalho.trim().split(/\s+/);
+  if (partes.length !== 2 || partes[0].toLowerCase() !== "bearer") {
+    return "Use o formato Authorization: Bearer <token> (uma vez só a palavra Bearer).";
+  }
+  const recebido = Buffer.from(partes[1]);
+  if (recebido.length !== tokenEsperado.length || !timingSafeEqual(recebido, tokenEsperado)) {
+    return "Token inválido.";
+  }
+  return null;
 }
 
 // Mesma regra do conferirDono do app (R8): conta e categoria do usuário, categoria ativa
@@ -67,9 +74,8 @@ app.get("/health", (req, res) => {
 });
 
 app.use((req, res, next) => {
-  if (!tokenConfere(req.get("authorization"))) {
-    return res.status(401).json({ erro: "Não autorizado." });
-  }
+  const problema = problemaNoToken(req.get("authorization"));
+  if (problema) return res.status(401).json({ erro: problema });
   next();
 });
 
