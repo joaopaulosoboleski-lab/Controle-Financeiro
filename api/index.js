@@ -3,13 +3,17 @@ import express from "express";
 import { createClient } from "@supabase/supabase-js";
 import { validarLancamento } from "./validacao.js";
 
-// SEM AUTENTICAÇÃO por enquanto: qualquer um que alcance a API grava em nome de qualquer usuário.
-// Por isso ela só ouve em 127.0.0.1 (esta máquina). Para reativar o token, veja o commit d898e80.
+// SEM AUTENTICAÇÃO (decisão do projeto, por enquanto; o token está no commit d898e80).
+// - LOCAL (padrão): ouve só nesta máquina (127.0.0.1 e ::1).
+// - PÚBLICO (no Railway, ou HOST=0.0.0.0): ouve na rede. ATENÇÃO: aí qualquer um que tenha a URL
+//   grava em nome de qualquer usuário, com a chave que ignora o RLS.
 
 const { SUPABASE_URL, SUPABASE_KEY } = process.env;
+const PUBLICO =
+  process.env.HOST === "0.0.0.0" || Boolean(process.env.RAILWAY_ENVIRONMENT_NAME || process.env.RAILWAY_ENVIRONMENT);
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.error("Defina SUPABASE_URL e SUPABASE_KEY no arquivo .env (veja .env.example).");
+  console.error("Defina SUPABASE_URL e SUPABASE_KEY (no .env local ou nas Variables do Railway).");
   process.exit(1);
 }
 
@@ -88,8 +92,14 @@ app.use((err, req, res, _next) => {
 });
 
 const PORT = process.env.PORT || 3000;
-// Só esta máquina: sem token, abrir para a rede deixaria qualquer um gravar em dados reais.
-// Ouve no IPv4 e no IPv6 locais porque, no Windows, "localhost" costuma ir primeiro para ::1.
-app.listen(PORT, "127.0.0.1", () => console.log(`API ouvindo em http://localhost:${PORT} (sem autenticação)`));
-app.listen(PORT, "::1").on("error", () => {}); // sem IPv6 na máquina: segue só com o IPv4
+if (PUBLICO) {
+  // O proxy do Railway entra pela rede do contêiner, não pelo 127.0.0.1: precisa ouvir em todas.
+  app.listen(PORT, "0.0.0.0", () =>
+    console.warn(`API ouvindo na porta ${PORT} (modo PÚBLICO, SEM token: qualquer um com a URL grava)`),
+  );
+} else {
+  // Só esta máquina. IPv4 e IPv6 porque, no Windows, "localhost" costuma ir primeiro para ::1.
+  app.listen(PORT, "127.0.0.1", () => console.log(`API ouvindo em http://localhost:${PORT} (local, sem token)`));
+  app.listen(PORT, "::1").on("error", () => {}); // sem IPv6 na máquina: segue só com o IPv4
+}
 
