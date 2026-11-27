@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Caderneta API",
-    "description": "Pedidos de teste da API em api/. Use com o ambiente 'Caderneta API (local)', que define baseUrl e token. As pastas 1 a 3 nunca gravam; a 4 grava em dados reais.",
+    "description": "Pedidos de teste da API em api/. Use com o ambiente 'Caderneta API (local)', que define baseUrl. A API está SEM autenticação por enquanto. As pastas 1 e 2 nunca gravam; a 3 grava em dados reais.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -31,128 +31,7 @@
       ]
     },
     {
-      "name": "2. Autenticação",
-      "item": [
-        {
-          "name": "Sem token → 401",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{baseUrl}}/lancamentos",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "lancamentos"
-              ]
-            },
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "description": "Esperado: 401. Espera: Falta o cabeçalho Authorization.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"usuario_id\": 1,\n  \"conta_id\": 1,\n  \"categoria_id\": 1,\n  \"tipo\": \"saida\",\n  \"valor\": 12.34,\n  \"data_lancamento\": \"2026-11-26\",\n  \"descricao\": \"TESTE API - apagar\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "Token errado → 401",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{baseUrl}}/lancamentos",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "lancamentos"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "token-errado-de-proposito",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "description": "Esperado: 401. Espera: Token inválido.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"usuario_id\": 1,\n  \"conta_id\": 1,\n  \"categoria_id\": 1,\n  \"tipo\": \"saida\",\n  \"valor\": 12.34,\n  \"data_lancamento\": \"2026-11-26\",\n  \"descricao\": \"TESTE API - apagar\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "Bearer escrito duas vezes → 401",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{baseUrl}}/lancamentos",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "lancamentos"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "Bearer {{token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "description": "Esperado: 401. Espera: Use o formato Authorization: Bearer <token>.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"usuario_id\": 1,\n  \"conta_id\": 1,\n  \"categoria_id\": 1,\n  \"tipo\": \"saida\",\n  \"valor\": 12.34,\n  \"data_lancamento\": \"2026-11-26\",\n  \"descricao\": \"TESTE API - apagar\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "3. Validação (não grava)",
+      "name": "2. Validação (não grava)",
       "item": [
         {
           "name": "Corpo vazio → 400",
@@ -168,14 +47,7 @@
               ]
             },
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "header": [
               {
@@ -209,14 +81,7 @@
               ]
             },
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "header": [
               {
@@ -250,14 +115,7 @@
               ]
             },
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "header": [
               {
@@ -278,7 +136,7 @@
           }
         },
         {
-          "name": "Valor como texto → 400",
+          "name": "Valor texto não numérico → 400",
           "request": {
             "method": "POST",
             "url": {
@@ -291,14 +149,7 @@
               ]
             },
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "header": [
               {
@@ -306,10 +157,44 @@
                 "value": "application/json"
               }
             ],
-            "description": "Esperado: 400. Espera: valor deve ser um número maior que zero. (o número vai sem aspas)",
+            "description": "Esperado: 400. Espera: valor deve ser um número maior que zero.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"usuario_id\": 1,\n  \"conta_id\": 1,\n  \"categoria_id\": 1,\n  \"tipo\": \"saida\",\n  \"valor\": \"12.34\",\n  \"data_lancamento\": \"2026-11-26\",\n  \"descricao\": \"TESTE API - apagar\"\n}",
+              "raw": "{\n  \"usuario_id\": 1,\n  \"conta_id\": 1,\n  \"categoria_id\": 1,\n  \"tipo\": \"saida\",\n  \"valor\": \"abc\",\n  \"data_lancamento\": \"2026-11-26\",\n  \"descricao\": \"TESTE API - apagar\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Valor no formato brasileiro → 400",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/lancamentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "lancamentos"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Esperado: 400. Espera: valor deve ser um número maior que zero. Use ponto como decimal e sem separador de milhar: \"1250.80\".",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario_id\": 1,\n  \"conta_id\": 1,\n  \"categoria_id\": 1,\n  \"tipo\": \"saida\",\n  \"valor\": \"1.250,80\",\n  \"data_lancamento\": \"2026-11-26\",\n  \"descricao\": \"TESTE API - apagar\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -332,14 +217,7 @@
               ]
             },
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "header": [
               {
@@ -373,14 +251,7 @@
               ]
             },
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "header": [
               {
@@ -414,14 +285,7 @@
               ]
             },
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "header": [
               {
@@ -455,14 +319,7 @@
               ]
             },
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "header": [],
             "description": "Esperado: 404. GET não existe em /lancamentos: só POST. Espera: Rota não encontrada."
@@ -471,7 +328,7 @@
       ]
     },
     {
-      "name": "4. Gravação (DADOS REAIS)",
+      "name": "3. Gravação (DADOS REAIS)",
       "item": [
         {
           "name": "Criar lançamento → 201",
@@ -487,14 +344,7 @@
               ]
             },
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{token}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "header": [
               {

@@ -32,7 +32,17 @@ test("rejeita campos inválidos", () => {
     { ...exemplo, tipo: "Saida" },
     { ...exemplo, valor: 0 },
     { ...exemplo, valor: -10 },
-    { ...exemplo, valor: "1250.80" },
+    { ...exemplo, valor: "abc" },
+    { ...exemplo, valor: "" },
+    { ...exemplo, valor: "1.250,80" },
+    { ...exemplo, valor: "1e3" },
+    { ...exemplo, valor: "0x10" },
+    { ...exemplo, valor: "-5" },
+    { ...exemplo, valor: "0.00" },
+    { ...exemplo, valor: "10.123" },
+    { ...exemplo, valor: true },
+    { ...exemplo, valor: [5] },
+    { ...exemplo, valor: null },
     { ...exemplo, valor: 10.123 },
     { ...exemplo, valor: 100000000 },
     { ...exemplo, data_lancamento: "2025-02-30" },
@@ -42,6 +52,12 @@ test("rejeita campos inválidos", () => {
   for (const corpo of casos) {
     assert.ok(validarLancamento(corpo).erro, `deveria rejeitar ${JSON.stringify(corpo)}`);
   }
+});
+
+test("aceita valor como texto com ponto decimal e devolve número", () => {
+  assert.equal(validarLancamento({ ...exemplo, valor: "325.00" }).dados.valor, 325);
+  assert.equal(validarLancamento({ ...exemplo, valor: " 1250.80 " }).dados.valor, 1250.8);
+  assert.equal(validarLancamento({ ...exemplo, valor: "89" }).dados.valor, 89);
 });
 
 test("aceita valores com duas casas sem erro de ponto flutuante", () => {
