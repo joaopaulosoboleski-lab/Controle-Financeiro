@@ -19,19 +19,29 @@ function duasCasas(v) {
   return Math.abs(v * 100 - Math.round(v * 100)) < 1e-6;
 }
 
+// Número (325.5) ou texto com ponto decimal ("325.00"). Recusa o resto, inclusive o formato
+// brasileiro "1.250,80" (ali o ponto é milhar: ambíguo) e o que o Number() aceitaria
+// sem querer, como "1e3", "0x10", "" ou true.
+function lerValor(valor) {
+  if (typeof valor === "number") return valor;
+  if (typeof valor === "string" && /^\d+(\.\d+)?$/.test(valor.trim())) return Number(valor);
+  return NaN;
+}
+
 // Devolve { erro } com a primeira mensagem de erro, ou { dados } pronto para o insert.
 export function validarLancamento(corpo) {
   if (!corpo || typeof corpo !== "object" || Array.isArray(corpo)) {
     return { erro: "Envie um objeto JSON." };
   }
-  const { usuario_id, conta_id, categoria_id, tipo, valor, data_lancamento, descricao } = corpo;
+  const { usuario_id, conta_id, categoria_id, tipo, data_lancamento, descricao } = corpo;
+  const valor = lerValor(corpo.valor);
 
   if (!idValido(usuario_id)) return { erro: "usuario_id inválido." };
   if (!idValido(conta_id)) return { erro: "conta_id inválido." };
   if (!idValido(categoria_id)) return { erro: "categoria_id inválido." };
   if (tipo !== "entrada" && tipo !== "saida") return { erro: "tipo deve ser 'entrada' ou 'saida'." };
-  if (typeof valor !== "number" || !Number.isFinite(valor) || valor <= 0) {
-    return { erro: "valor deve ser um número maior que zero." };
+  if (!Number.isFinite(valor) || valor <= 0) {
+    return { erro: "valor deve ser um número maior que zero (ex.: 325.00 ou \"325.00\")." };
   }
   if (valor > VALOR_MAXIMO) return { erro: "valor acima do máximo permitido." };
   if (!duasCasas(valor)) return { erro: "valor aceita no máximo duas casas decimais." };

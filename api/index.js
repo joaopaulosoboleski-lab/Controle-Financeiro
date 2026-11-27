@@ -1,17 +1,15 @@
 import "dotenv/config";
-import { timingSafeEqual } from "node:crypto";
 import express from "express";
 import { createClient } from "@supabase/supabase-js";
 import { validarLancamento } from "./validacao.js";
 
-const { SUPABASE_URL, SUPABASE_KEY, API_TOKEN } = process.env;
+// SEM AUTENTICAÇÃO por enquanto: qualquer um que alcance a API grava em nome de qualquer usuário.
+// Por isso ela só ouve em 127.0.0.1 (esta máquina). Para reativar o token, veja o commit d898e80.
+
+const { SUPABASE_URL, SUPABASE_KEY } = process.env;
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
   console.error("Defina SUPABASE_URL e SUPABASE_KEY no arquivo .env (veja .env.example).");
-  process.exit(1);
-}
-if (!API_TOKEN || API_TOKEN.length < 32) {
-  console.error("Defina API_TOKEN no arquivo .env com pelo menos 32 caracteres (veja .env.example).");
   process.exit(1);
 }
 
@@ -20,22 +18,6 @@ if (!API_TOKEN || API_TOKEN.length < 32) {
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
-
-const tokenEsperado = Buffer.from(API_TOKEN);
-
-// Devolve null se o token confere, ou o motivo da recusa (sem revelar nada do token esperado).
-function problemaNoToken(cabecalho) {
-  if (!cabecalho) return "Falta o cabeçalho Authorization: Bearer <token>.";
-  const partes = cabecalho.trim().split(/\s+/);
-  if (partes.length !== 2 || partes[0].toLowerCase() !== "bearer") {
-    return "Use o formato Authorization: Bearer <token> (uma vez só a palavra Bearer).";
-  }
-  const recebido = Buffer.from(partes[1]);
-  if (recebido.length !== tokenEsperado.length || !timingSafeEqual(recebido, tokenEsperado)) {
-    return "Token inválido.";
-  }
-  return null;
-}
 
 // Mesma regra do conferirDono do app (R8): conta e categoria do usuário, categoria ativa
 // e do mesmo tipo do lançamento. Devolve { erro, status } ou null.
@@ -68,15 +50,9 @@ const app = express();
 app.disable("x-powered-by");
 app.use(express.json({ limit: "10kb" }));
 
-// Público (fica ANTES da checagem do token): só diz que o serviço está de pé, sem dado nenhum.
+// Só diz que o serviço está de pé, sem dado nenhum.
 app.get("/health", (req, res) => {
   res.status(200).json({ servico: "caderneta-api", versao: "1.0.0" });
-});
-
-app.use((req, res, next) => {
-  const problema = problemaNoToken(req.get("authorization"));
-  if (problema) return res.status(401).json({ erro: problema });
-  next();
 });
 
 app.post("/lancamentos", async (req, res) => {
@@ -112,4 +88,8 @@ app.use((err, req, res, _next) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`API ouvindo na porta ${PORT}`));
+// Só esta máquina: sem token, abrir para a rede deixaria qualquer um gravar em dados reais.
+// Ouve no IPv4 e no IPv6 locais porque, no Windows, "localhost" costuma ir primeiro para ::1.
+app.listen(PORT, "127.0.0.1", () => console.log(`API ouvindo em http://localhost:${PORT} (sem autenticação)`));
+app.listen(PORT, "::1").on("error", () => {}); // sem IPv6 na máquina: segue só com o IPv4
+
